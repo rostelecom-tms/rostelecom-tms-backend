@@ -2,6 +2,9 @@ package ru.rt.rostelecom_tms.domain.cases;
 
 import jakarta.persistence.*;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "case_groups")
 public class CaseGroup {
@@ -15,6 +18,17 @@ public class CaseGroup {
 
     @Column(name = "slug", nullable = false)
     private String slug;
+
+    @OneToMany(mappedBy = "group")
+    private Set<Case> cases = new LinkedHashSet<>();
+
+    public Set<Case> getCases() {
+        return cases;
+    }
+
+    public void setCases(Set<Case> cases) {
+        this.cases = cases;
+    }
 
     public Integer getId() {
         return id;

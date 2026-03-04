@@ -19,6 +19,19 @@ public class PlansCase {
     @JoinColumn(name = "case_id", nullable = false)
     private Case caseField;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
+
+    public Plan getPlan() {
+        return plan;
+    }
+
+    public void setPlan(Plan plan) {
+        this.plan = plan;
+    }
+
     public Integer getId() {
         return id;
     }

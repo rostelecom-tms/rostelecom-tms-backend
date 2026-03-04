@@ -44,11 +44,20 @@ public class Plan {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "plan")
-    private Set<PlansCase> plansCases = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "plan")
     private Set<Run> runs = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "plan")
+    private Set<PlansCase> plansCases = new LinkedHashSet<>();
+
+    public Set<PlansCase> getPlansCases() {
+        return plansCases;
+    }
+
+    public void setPlansCases(Set<PlansCase> plansCases) {
+        this.plansCases = plansCases;
+    }
 
     public Integer getId() {
         return id;
@@ -114,13 +123,6 @@ public class Plan {
         this.createdAt = createdAt;
     }
 
-    public Set<PlansCase> getPlansCases() {
-        return plansCases;
-    }
-
-    public void setPlansCases(Set<PlansCase> plansCases) {
-        this.plansCases = plansCases;
-    }
 
     public Set<Run> getRuns() {
         return runs;

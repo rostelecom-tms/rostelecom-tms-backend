@@ -5,6 +5,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import ru.rt.rostelecom_tms.domain.cases.Case;
+import ru.rt.rostelecom_tms.domain.users.User;
 
 import java.time.Instant;
 
@@ -34,6 +35,19 @@ public class Run {
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "status_id", nullable = false)
     private RunStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "executed_by")
+    private User executedBy;
+
+    public User getExecutedBy() {
+        return executedBy;
+    }
+
+    public void setExecutedBy(User executedBy) {
+        this.executedBy = executedBy;
+    }
 
     public RunStatus getStatus() {
         return status;
