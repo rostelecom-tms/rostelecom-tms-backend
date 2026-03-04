@@ -4,7 +4,7 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 --changeset dev:001-user-roles
-CREATE TABLE user_roles
+CREATE TABLE IF NOT EXISTS user_roles
 (
     id   SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -12,7 +12,7 @@ CREATE TABLE user_roles
 );
 
 --changeset dev:001-users
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     id            SERIAL PRIMARY KEY,
     email         VARCHAR(255) NOT NULL UNIQUE,

@@ -6,6 +6,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/tms
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   liquibase:
     change-log: classpath:database/changelog/db.changelog-master.xml

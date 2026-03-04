@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset dev:003-plans
-CREATE TABLE plans
+CREATE TABLE IF NOT EXISTS plans
 (
     id                  SERIAL PRIMARY KEY,
     name                VARCHAR(255) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE plans
 );
 
 --changeset dev:003-plans-cases
-CREATE TABLE plans_cases
+CREATE TABLE IF NOT EXISTS plans_cases
 (
     id      SERIAL PRIMARY KEY,
     plan_id INTEGER NOT NULL REFERENCES plans (id) ON DELETE CASCADE,
