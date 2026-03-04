@@ -1,9 +1,22 @@
 services:
-  postgres:
-    image: 'postgres:latest'
+  tms-db:
+    image: postgres:16-alpine
+    container_name: tms-db
+    restart: unless-stopped
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - '5432'
+      - "5432:5432"
+    volumes:
+      - tms_pgdata:/var/lib/postgresql/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  tms_pgdata:
+    driver: local
