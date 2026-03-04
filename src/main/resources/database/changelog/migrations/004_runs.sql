@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset dev:004-run-statuses
-CREATE TABLE run_statuses
+CREATE TABLE IF NOT EXISTS run_statuses
 (
     id   SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -9,7 +9,7 @@ CREATE TABLE run_statuses
 );
 
 --changeset dev:004-runs
-CREATE TABLE runs
+CREATE TABLE IF NOT EXISTS runs
 (
     id          SERIAL PRIMARY KEY,
     case_id     INTEGER   NOT NULL REFERENCES cases (id) ON DELETE RESTRICT,
