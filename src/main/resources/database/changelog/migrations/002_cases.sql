@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset dev:002-case-groups
-CREATE TABLE case_groups
+CREATE TABLE IF NOT EXISTS case_groups
 (
     id   SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
@@ -9,7 +9,7 @@ CREATE TABLE case_groups
 );
 
 --changeset dev:002-cases
-CREATE TABLE cases
+CREATE TABLE IF NOT EXISTS cases
 (
     id             SERIAL PRIMARY KEY,
     title          VARCHAR(500) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE cases
 );
 
 --changeset dev:002-case-steps
-CREATE TABLE case_steps
+CREATE TABLE IF NOT EXISTS case_steps
 (
     id              SERIAL PRIMARY KEY,
     case_id         INTEGER NOT NULL REFERENCES cases (id) ON DELETE CASCADE,
@@ -33,7 +33,7 @@ CREATE TABLE case_steps
 );
 
 --changeset dev:002-defects
-CREATE TABLE defects
+CREATE TABLE IF NOT EXISTS defects
 (
     id          SERIAL PRIMARY KEY,
     case_id     INTEGER   NOT NULL REFERENCES cases (id) ON DELETE CASCADE,
