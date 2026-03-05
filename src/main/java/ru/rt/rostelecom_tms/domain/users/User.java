@@ -21,8 +21,8 @@ import java.util.Set;
 @Table(name = "users")
 public class User {
     @Id
-    @ColumnDefault("nextval('users_id_seq')")
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "email", nullable = false)

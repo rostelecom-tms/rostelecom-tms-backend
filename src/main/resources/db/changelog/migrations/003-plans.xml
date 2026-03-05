@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="003-plans" author="edwin">
+        <createTable tableName="plans">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="introduction" type="TEXT"/>
+            <column name="approach" type="TEXT"/>
+            <column name="start_date" type="DATE"/>
+            <column name="end_date" type="DATE"/>
+            <column name="responsible_user_id" type="INT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="plans"
+                baseColumnNames="responsible_user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_plans_responsible_user_id"
+                onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="003-plans-cases" author="edwin">
+        <createTable tableName="plans_cases">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="plan_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="case_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="plans_cases"
+                baseColumnNames="plan_id"
+                referencedTableName="plans"
+                referencedColumnNames="id"
+                constraintName="fk_plans_cases_plan_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="plans_cases"
+                baseColumnNames="case_id"
+                referencedTableName="cases"
+                referencedColumnNames="id"
+                constraintName="fk_plans_cases_case_id"
+                onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                tableName="plans_cases"
+                columnNames="plan_id, case_id"
+                constraintName="uk_plans_cases_plan_id_case_id"/>
+    </changeSet>
+
+    <changeSet id="003-plans-indexes" author="edwin">
+        <createIndex indexName="idx_plans_responsible_user_id" tableName="plans">
+            <column name="responsible_user_id"/>
+        </createIndex>
+        <createIndex indexName="idx_plans_dates" tableName="plans">
+            <column name="start_date"/>
+            <column name="end_date"/>
+        </createIndex>
+        <createIndex indexName="idx_plans_cases_plan_id" tableName="plans_cases">
+            <column name="plan_id"/>
+        </createIndex>
+        <createIndex indexName="idx_plans_cases_case_id" tableName="plans_cases">
+            <column name="case_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

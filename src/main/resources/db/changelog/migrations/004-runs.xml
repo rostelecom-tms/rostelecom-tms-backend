@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="004-run-statuses" author="edwin">
+        <createTable tableName="run_statuses">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="slug" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="004-runs" author="edwin">
+        <createTable tableName="runs">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="case_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="plan_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="executed_by" type="INT"/>
+            <column name="executed_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="runs"
+                baseColumnNames="case_id"
+                referencedTableName="cases"
+                referencedColumnNames="id"
+                constraintName="fk_runs_case_id"
+                onDelete="RESTRICT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="runs"
+                baseColumnNames="plan_id"
+                referencedTableName="plans"
+                referencedColumnNames="id"
+                constraintName="fk_runs_plan_id"
+                onDelete="RESTRICT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="runs"
+                baseColumnNames="status_id"
+                referencedTableName="run_statuses"
+                referencedColumnNames="id"
+                constraintName="fk_runs_status_id"
+                onDelete="RESTRICT"/>
+
+        <addForeignKeyConstraint
+                baseTableName="runs"
+                baseColumnNames="executed_by"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_runs_executed_by"
+                onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="004-runs-indexes" author="edwin">
+        <createIndex indexName="idx_runs_case_id" tableName="runs">
+            <column name="case_id"/>
+        </createIndex>
+        <createIndex indexName="idx_runs_plan_id" tableName="runs">
+            <column name="plan_id"/>
+        </createIndex>
+        <createIndex indexName="idx_runs_status_id" tableName="runs">
+            <column name="status_id"/>
+        </createIndex>
+        <createIndex indexName="idx_runs_executed_by" tableName="runs">
+            <column name="executed_by"/>
+        </createIndex>
+        <createIndex indexName="idx_runs_executed_at" tableName="runs">
+            <column name="executed_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
