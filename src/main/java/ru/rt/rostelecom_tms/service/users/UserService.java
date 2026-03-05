@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotCreatedException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
 
@@ -62,6 +63,13 @@ public class UserService {
 
     @Transactional
     public void register(RegisterUserCommand r) {
+        if (userRepository.existsByEmail(r.email())) {
+            throw new UserNotCreatedException("email already exists");
+        }
+        if (userRepository.existsByUsername(r.username())) {
+            throw new UserNotCreatedException("username already exists");
+        }
+
         User user = new User();
         user.setEmail(r.email());
         user.setUsername(r.username());
