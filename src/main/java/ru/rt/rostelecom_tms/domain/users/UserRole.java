@@ -1,10 +1,12 @@
 package ru.rt.rostelecom_tms.domain.users;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Data
 @Entity
 @Table(name = "user_roles")
 public class UserRole {
@@ -21,37 +23,4 @@ public class UserRole {
 
     @OneToMany(mappedBy = "role")
     private Set<User> users = new LinkedHashSet<>();
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
-
-    public Set<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(Set<User> users) {
-        this.users = users;
-    }
-
 }

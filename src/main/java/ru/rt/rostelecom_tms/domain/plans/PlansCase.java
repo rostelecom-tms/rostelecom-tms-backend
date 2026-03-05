@@ -1,11 +1,13 @@
 package ru.rt.rostelecom_tms.domain.plans;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 
+@Data
 @Entity
 @Table(name = "plans_cases")
 public class PlansCase {
@@ -23,29 +25,4 @@ public class PlansCase {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "plan_id", nullable = false)
     private Plan plan;
-
-    public Plan getPlan() {
-        return plan;
-    }
-
-    public void setPlan(Plan plan) {
-        this.plan = plan;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Case getCaseField() {
-        return caseField;
-    }
-
-    public void setCaseField(Case caseField) {
-        this.caseField = caseField;
-    }
-
 }

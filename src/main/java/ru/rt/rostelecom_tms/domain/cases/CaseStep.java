@@ -1,10 +1,12 @@
 package ru.rt.rostelecom_tms.domain.cases;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+@Data
 @Entity
 @Table(name = "case_steps")
 public class CaseStep {
@@ -29,53 +31,4 @@ public class CaseStep {
 
     @Column(name = "expected_result", length = Integer.MAX_VALUE)
     private String expectedResult;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Case getCaseField() {
-        return caseField;
-    }
-
-    public void setCaseField(Case caseField) {
-        this.caseField = caseField;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
-    }
-
-    public String getExpectedResult() {
-        return expectedResult;
-    }
-
-    public void setExpectedResult(String expectedResult) {
-        this.expectedResult = expectedResult;
-    }
-
 }

@@ -1,6 +1,7 @@
 package ru.rt.rostelecom_tms.domain.cases;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Data
 @Entity
 @Table(name = "cases")
 public class Case {
@@ -51,93 +53,4 @@ public class Case {
 
     @OneToMany(mappedBy = "caseField")
     private Set<Run> runs = new LinkedHashSet<>();
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public CaseGroup getGroup() {
-        return group;
-    }
-
-    public void setGroup(CaseGroup group) {
-        this.group = group;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPreconditions() {
-        return preconditions;
-    }
-
-    public void setPreconditions(String preconditions) {
-        this.preconditions = preconditions;
-    }
-
-    public String getPostconditions() {
-        return postconditions;
-    }
-
-    public void setPostconditions(String postconditions) {
-        this.postconditions = postconditions;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Set<CaseStep> getCaseSteps() {
-        return caseSteps;
-    }
-
-    public void setCaseSteps(Set<CaseStep> caseSteps) {
-        this.caseSteps = caseSteps;
-    }
-
-    public Set<Defect> getDefects() {
-        return defects;
-    }
-
-    public void setDefects(Set<Defect> defects) {
-        this.defects = defects;
-    }
-
-    public Set<PlansCase> getPlansCases() {
-        return plansCases;
-    }
-
-    public void setPlansCases(Set<PlansCase> plansCases) {
-        this.plansCases = plansCases;
-    }
-
-    public Set<Run> getRuns() {
-        return runs;
-    }
-
-    public void setRuns(Set<Run> runs) {
-        this.runs = runs;
-    }
-
 }

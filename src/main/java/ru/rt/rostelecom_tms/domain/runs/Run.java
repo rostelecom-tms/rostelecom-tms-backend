@@ -1,6 +1,7 @@
 package ru.rt.rostelecom_tms.domain.runs;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -9,6 +10,7 @@ import ru.rt.rostelecom_tms.domain.users.User;
 
 import java.time.Instant;
 
+@Data
 @Entity
 @Table(name = "runs")
 public class Run {
@@ -40,53 +42,4 @@ public class Run {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "executed_by")
     private User executedBy;
-
-    public User getExecutedBy() {
-        return executedBy;
-    }
-
-    public void setExecutedBy(User executedBy) {
-        this.executedBy = executedBy;
-    }
-
-    public RunStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RunStatus status) {
-        this.status = status;
-    }
-
-    public ru.rt.rostelecom_tms.domain.plans.Plan getPlan() {
-        return plan;
-    }
-
-    public void setPlan(ru.rt.rostelecom_tms.domain.plans.Plan plan) {
-        this.plan = plan;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Case getCaseField() {
-        return caseField;
-    }
-
-    public void setCaseField(Case caseField) {
-        this.caseField = caseField;
-    }
-
-    public Instant getExecutedAt() {
-        return executedAt;
-    }
-
-    public void setExecutedAt(Instant executedAt) {
-        this.executedAt = executedAt;
-    }
-
 }
