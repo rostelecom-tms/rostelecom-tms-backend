@@ -2,6 +2,14 @@ spring:
   application:
     name: rostelecom-tms
 
+  config:
+    import: optional:file:.env[.properties]
+
+  security:
+    user:
+      name: user
+      password: 1234
+
   datasource:
     url: jdbc:postgresql://localhost:5432/tms
     username: ${POSTGRES_USER}
@@ -9,4 +17,14 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   liquibase:
-    change-log: classpath:database/changelog/db.changelog-master.xml
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
