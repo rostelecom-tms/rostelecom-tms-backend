@@ -44,7 +44,7 @@ public class UserController {
         )).toList();
     }
 
-    @SecurityRequirement(name = "basicAuth")
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
     public ResponseEntity<HttpStatus> create(@RequestBody @Valid UserCreateDto userDto) {

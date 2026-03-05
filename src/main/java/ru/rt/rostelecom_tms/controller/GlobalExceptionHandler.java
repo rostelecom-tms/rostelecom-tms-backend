@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuth(AuthenticationException e) {
+    public ResponseEntity<ErrorResponse> handleAuth(AuthenticationException e) { // todo: separate check whether user exists or not
         return new ResponseEntity<>(
                 new ErrorResponse("unauthorized", System.currentTimeMillis()),
                 HttpStatus.UNAUTHORIZED
