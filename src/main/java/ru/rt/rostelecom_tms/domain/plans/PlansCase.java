@@ -16,7 +16,7 @@ import ru.rt.rostelecom_tms.domain.cases.Case;
 @Table(name = "plans_cases")
 public class PlansCase {
     @Id
-    @ColumnDefault("nextval('plans_cases_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 

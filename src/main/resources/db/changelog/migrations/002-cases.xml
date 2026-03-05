@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="002-case-groups" author="edwin">
+        <createTable tableName="case_groups">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="slug" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="002-cases" author="edwin">
+        <createTable tableName="cases">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="preconditions" type="TEXT"/>
+            <column name="postconditions" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="cases"
+                baseColumnNames="group_id"
+                referencedTableName="case_groups"
+                referencedColumnNames="id"
+                constraintName="fk_cases_group_id"
+                onDelete="RESTRICT"/>
+    </changeSet>
+
+    <changeSet id="002-case-steps" author="edwin">
+        <createTable tableName="case_steps">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="case_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="TEXT"/>
+            <column name="action" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expected_result" type="TEXT"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="case_steps"
+                baseColumnNames="case_id"
+                referencedTableName="cases"
+                referencedColumnNames="id"
+                constraintName="fk_case_steps_case_id"
+                onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                tableName="case_steps"
+                columnNames="case_id, order"
+                constraintName="uk_case_steps_case_id_order"/>
+    </changeSet>
+
+    <changeSet id="002-defects" author="edwin">
+        <createTable tableName="defects">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="case_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="is_solved" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="defects"
+                baseColumnNames="case_id"
+                referencedTableName="cases"
+                referencedColumnNames="id"
+                constraintName="fk_defects_case_id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="002-cases-indexes" author="edwin">
+        <createIndex indexName="idx_cases_group_id" tableName="cases">
+            <column name="group_id"/>
+        </createIndex>
+        <createIndex indexName="idx_case_steps_case_id" tableName="case_steps">
+            <column name="case_id"/>
+            <column name="order"/>
+        </createIndex>
+        <createIndex indexName="idx_defects_case_id" tableName="defects">
+            <column name="case_id"/>
+        </createIndex>
+        <createIndex indexName="idx_defects_is_solved" tableName="defects">
+            <column name="is_solved"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
