@@ -14,51 +14,52 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.rt.rostelecom_tms.dto.users.UserCreateDto;
-import ru.rt.rostelecom_tms.dto.users.UserResponseDto;
-import ru.rt.rostelecom_tms.dto.users.UserUpdateDto;
-import ru.rt.rostelecom_tms.service.users.UserService;
-import ru.rt.rostelecom_tms.util.mappers.UserMapper;
+import ru.rt.rostelecom_tms.dto.users.UserRoleCreateDto;
+import ru.rt.rostelecom_tms.dto.users.UserRoleResponseDto;
+import ru.rt.rostelecom_tms.dto.users.UserRoleUpdateDto;
+import ru.rt.rostelecom_tms.service.users.UserRoleService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/roles")
 @RequiredArgsConstructor
-public class UserController {
+public class RolesController {
 
-    private final UserService userService;
+    private final UserRoleService roleService;
 
     @GetMapping()
-    public List<UserResponseDto> getUsers() {
-        return userService.findAll().stream().map(UserMapper::toDto).toList();
+    public List<UserRoleResponseDto> getRoles() {
+        return roleService.findAll().stream().map(r -> new UserRoleResponseDto(
+                r.getId(), r.getName(), r.getSlug()
+        )).toList();
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping()
-    public void createUser(@RequestBody @Valid UserCreateDto userDto) {
-        userService.register(
-                new UserService.RegisterUserCommand(
-                        userDto.email(), userDto.username(), userDto.password()
-                )
-        );
+    public void createRole(@RequestBody @Valid UserRoleCreateDto roleDto) {
+        roleService.save(new UserRoleService.CreateRoleCommand(
+                roleDto.name(), roleDto.slug()
+        ));
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{id}")
-    public void updateUser(@PathVariable int id, @RequestBody @Valid UserUpdateDto userDto) {
-        userService.update(id, new UserService.UpdateUserCommand(userDto.roleId()));
+    public void updateRole(@PathVariable int id, @RequestBody @Valid UserRoleUpdateDto roleDto) {
+        roleService.update(id, new UserRoleService.UpdateRoleCommand(
+                roleDto.name(), roleDto.slug()
+        ));
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable int id) {
-        userService.delete(id);
+    public void deleteRole(@PathVariable int id) {
+        roleService.delete(id);
     }
 }

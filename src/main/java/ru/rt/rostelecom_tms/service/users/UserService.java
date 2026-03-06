@@ -1,10 +1,12 @@
 package ru.rt.rostelecom_tms.service.users;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.domain.users.UserRole;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotCreatedException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
@@ -15,6 +17,7 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -26,13 +29,7 @@ public class UserService {
     public record RegisterUserCommand(String email, String username, String password) {
     }
 
-    @Autowired
-    public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       UserRoleService userRoleService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userRoleService = userRoleService;
+    public record UpdateUserCommand(Integer roleId) {
     }
 
     public List<User> findAll() {
@@ -45,15 +42,11 @@ public class UserService {
     }
 
     @Transactional
-    public void save(User user) {
-        user.setCreatedAt(Instant.now());
+    public void update(int id, UpdateUserCommand updatedUser) {
+        User user = findOne(id);
+        UserRole role = userRoleService.findOne(updatedUser.roleId());
+        user.setRole(role);
         userRepository.save(user);
-    }
-
-    @Transactional
-    public void update(int id, User updatedUser) {
-        updatedUser.setId(id);
-        userRepository.save(updatedUser);
     }
 
     @Transactional
@@ -63,18 +56,12 @@ public class UserService {
 
     @Transactional
     public void register(RegisterUserCommand r) {
-        if (userRepository.existsByEmail(r.email())) {
-            throw new UserNotCreatedException("email already exists");
-        }
-        if (userRepository.existsByUsername(r.username())) {
-            throw new UserNotCreatedException("username already exists");
-        }
-
         User user = new User();
         user.setEmail(r.email());
         user.setUsername(r.username());
-        user.setPasswordHash(passwordEncoder.encode(r.password())); // важно
+        user.setPasswordHash(passwordEncoder.encode(r.password()));
         user.setRole(userRoleService.findOneBySlug("user"));
-        this.save(user);
+        user.setCreatedAt(Instant.now());
+        userRepository.save(user);
     }
 }
