@@ -1,0 +1,57 @@
+# я запускаюсь через "docker compose -f compose.prod.yaml up"
+# я выключаюсь через "docker compose -f compose.prod.yaml down"
+
+services:
+  tms-db:
+    image: postgres:16-alpine
+    container_name: tms-db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    networks:
+      - tms-network
+    volumes:
+      - tms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tms-back:
+    build: .
+    container_name: tms-back
+    restart: always
+    depends_on:
+      tms-db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - tms-network
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://tms-db:5432/${POSTGRES_DB}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  tms-network:
+    name: tms-network
+    driver: bridge
+
+volumes:
+  tms_pgdata:
+    name: tms-pgdata
+    driver: local
