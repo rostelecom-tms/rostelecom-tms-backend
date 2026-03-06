@@ -12,5 +12,5 @@ public record UserResponseDto(
         String email,
         String username,
         Instant createdAt,
-        UserRoleDto role) {
+        UserRoleResponseDto role) {
 }

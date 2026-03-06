@@ -5,7 +5,7 @@ import ru.rt.rostelecom_tms.domain.users.UserRole;
 /**
  * DTO for {@link UserRole}
  */
-public record UserRoleDto(
+public record UserRoleResponseDto(
         Integer id,
         String name,
         String slug
