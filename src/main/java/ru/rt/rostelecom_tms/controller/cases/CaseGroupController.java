@@ -36,13 +36,8 @@ public class CaseGroupController {
                 .toList();
     }
 
-    @GetMapping("/{id}")
-    public CaseGroupResponseDto getOne(@PathVariable int id) {
-        return CaseMapper.toDto(caseGroupService.findOne(id));
-    }
-
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public CaseGroupResponseDto create(@RequestBody @Valid CaseGroupCreateDto dto) {
@@ -52,7 +47,7 @@ public class CaseGroupController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{id}")
     public void update(@PathVariable int id, @RequestBody @Valid CaseGroupUpdateDto dto) {
@@ -60,7 +55,7 @@ public class CaseGroupController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
