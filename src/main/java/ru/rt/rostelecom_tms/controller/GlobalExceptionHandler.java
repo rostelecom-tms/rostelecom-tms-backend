@@ -11,6 +11,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotDeletableException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotCreatedException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotFoundException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
@@ -30,11 +33,24 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(CaseGroupNotCreatedException.class)
-    public ResponseEntity<ErrorResponse> handleCaseGroupConflict(CaseGroupNotCreatedException e) {
+    @ExceptionHandler({
+            CaseAlreadyExistsException.class,
+            CaseGroupAlreadyExistsException.class,
+            CaseGroupNotCreatedException.class,
+            CaseGroupNotDeletableException.class
+    })
+    public ResponseEntity<ErrorResponse> handleCaseConflict(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
                 HttpStatus.CONFLICT
+        );
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
+                HttpStatus.BAD_REQUEST
         );
     }
 

@@ -6,12 +6,15 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -60,7 +63,9 @@ public class CaseService {
 
     @Transactional
     public Case create(CreateCaseCommand cmd) {
+        validateStepCommands(cmd.steps());
         CaseGroup group = caseGroupService.findOne(cmd.groupId());
+        ensureCaseTitleIsUnique(cmd.title(), group.getId(), null);
 
         Case c = new Case();
         c.setTitle(cmd.title());
@@ -85,6 +90,11 @@ public class CaseService {
     @Transactional
     public void update(int id, UpdateCaseCommand cmd) {
         Case c = findOne(id);
+        validateStepCommands(cmd.steps());
+
+        String nextTitle = cmd.title() != null ? cmd.title() : c.getTitle();
+        Integer nextGroupId = cmd.groupId() != null ? cmd.groupId() : c.getGroup().getId();
+        ensureCaseTitleIsUnique(nextTitle, nextGroupId, c.getId());
 
         if (cmd.title() != null) {
             c.setTitle(cmd.title());
@@ -131,5 +141,40 @@ public class CaseService {
             result.add(step);
         }
         return result;
+    }
+
+    private void ensureCaseTitleIsUnique(String title, Integer groupId, Integer currentCaseId) {
+        boolean duplicateExists = caseRepository.existsByTitleAndGroupId(title, groupId);
+        if (!duplicateExists) {
+            return;
+        }
+
+        if (currentCaseId != null) {
+            Case currentCase = findOne(currentCaseId);
+            boolean sameTitle = title.equals(currentCase.getTitle());
+            boolean sameGroup = groupId.equals(currentCase.getGroup().getId());
+            if (sameTitle && sameGroup) {
+                return;
+            }
+        }
+
+        throw new CaseAlreadyExistsException(
+                "Case with title '" + title + "' already exists in group with id '" + groupId + "'"
+        );
+    }
+
+    private void validateStepCommands(List<StepCommand> stepCommands) {
+        if (stepCommands == null || stepCommands.isEmpty()) {
+            return;
+        }
+
+        Set<Integer> orders = new HashSet<>();
+        for (StepCommand stepCommand : stepCommands) {
+            if (!orders.add(stepCommand.order())) {
+                throw new IllegalArgumentException(
+                        "Case steps must contain unique order values"
+                );
+            }
+        }
     }
 }

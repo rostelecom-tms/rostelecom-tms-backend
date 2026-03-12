@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotCreatedException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotDeletableException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotFoundException;
+import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 import ru.rt.rostelecom_tms.repository.cases.CaseGroupRepository;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.List;
 public class CaseGroupService {
 
     private final CaseGroupRepository caseGroupRepository;
+    private final CaseRepository caseRepository;
 
     public record CreateGroupCommand(String name, String slug) {
     }
@@ -35,10 +38,10 @@ public class CaseGroupService {
     @Transactional
     public CaseGroup create(CreateGroupCommand cmd) {
         if (caseGroupRepository.existsByName(cmd.name())) {
-            throw new CaseGroupNotCreatedException("Case group with name '" + cmd.name() + "' already exists");
+            throw new CaseGroupAlreadyExistsException("Case group with name '" + cmd.name() + "' already exists");
         }
         if (caseGroupRepository.existsBySlug(cmd.slug())) {
-            throw new CaseGroupNotCreatedException("Case group with slug '" + cmd.slug() + "' already exists");
+            throw new CaseGroupAlreadyExistsException("Case group with slug '" + cmd.slug() + "' already exists");
         }
 
         CaseGroup group = new CaseGroup();
@@ -53,14 +56,14 @@ public class CaseGroupService {
 
         if (cmd.name() != null && !cmd.name().equals(group.getName())) {
             if (caseGroupRepository.existsByName(cmd.name())) {
-                throw new CaseGroupNotCreatedException("Case group with name '" + cmd.name() + "' already exists");
+                throw new CaseGroupAlreadyExistsException("Case group with name '" + cmd.name() + "' already exists");
             }
             group.setName(cmd.name());
         }
 
         if (cmd.slug() != null && !cmd.slug().equals(group.getSlug())) {
             if (caseGroupRepository.existsBySlug(cmd.slug())) {
-                throw new CaseGroupNotCreatedException("Case group with slug '" + cmd.slug() + "' already exists");
+                throw new CaseGroupAlreadyExistsException("Case group with slug '" + cmd.slug() + "' already exists");
             }
             group.setSlug(cmd.slug());
         }
@@ -70,9 +73,12 @@ public class CaseGroupService {
 
     @Transactional
     public void delete(int id) {
-        if (!caseGroupRepository.existsById(id)) {
-            throw new CaseGroupNotFoundException();
+        CaseGroup group = findOne(id);
+        if (caseRepository.existsByGroupId(id)) {
+            throw new CaseGroupNotDeletableException(
+                    "Case group with id '" + id + "' cannot be deleted because it still contains cases"
+            );
         }
-        caseGroupRepository.deleteById(id);
+        caseGroupRepository.delete(group);
     }
 }
