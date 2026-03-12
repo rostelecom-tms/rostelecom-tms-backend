@@ -11,12 +11,32 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotCreatedException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotFoundException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
+import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler({CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
+                HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(CaseGroupNotCreatedException.class)
+    public ResponseEntity<ErrorResponse> handleCaseGroupConflict(CaseGroupNotCreatedException e) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
+                HttpStatus.CONFLICT
+        );
+    }
 
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
     public ResponseEntity<ErrorResponse> handleAccessDenied(Exception e) {

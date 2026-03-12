@@ -46,7 +46,7 @@ public class Case {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "caseField")
+    @OneToMany(mappedBy = "caseField", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CaseStep> caseSteps = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "caseField")
