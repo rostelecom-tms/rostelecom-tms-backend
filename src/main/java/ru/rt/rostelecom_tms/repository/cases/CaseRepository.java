@@ -15,11 +15,13 @@ public interface CaseRepository extends JpaRepository<Case, Integer> {
     @Query("SELECT DISTINCT c FROM Case c LEFT JOIN FETCH c.caseSteps LEFT JOIN FETCH c.group")
     List<Case> findAllWithStepsAndGroup();
 
-    @Query("SELECT DISTINCT c FROM Case c LEFT JOIN FETCH c.caseSteps WHERE c.group.id = :groupId")
+    @Query("SELECT DISTINCT c FROM Case c LEFT JOIN FETCH c.caseSteps LEFT JOIN FETCH c.group WHERE c.group.id = :groupId")
     List<Case> findAllByGroupIdWithSteps(@Param("groupId") Integer groupId);
 
-    @Query("SELECT c FROM Case c LEFT JOIN FETCH c.caseSteps WHERE c.id = :id")
+    @Query("SELECT c FROM Case c LEFT JOIN FETCH c.caseSteps LEFT JOIN FETCH c.group WHERE c.id = :id")
     Optional<Case> findByIdWithSteps(@Param("id") Integer id);
 
     boolean existsByTitleAndGroupId(String title, Integer groupId);
+
+    boolean existsByGroupId(Integer groupId);
 }
