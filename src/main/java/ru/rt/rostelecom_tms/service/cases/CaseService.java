@@ -94,7 +94,7 @@ public class CaseService {
 
         String nextTitle = cmd.title() != null ? cmd.title() : c.getTitle();
         Integer nextGroupId = cmd.groupId() != null ? cmd.groupId() : c.getGroup().getId();
-        ensureCaseTitleIsUnique(nextTitle, nextGroupId, c.getId());
+        ensureCaseTitleIsUnique(nextTitle, nextGroupId, c);
 
         if (cmd.title() != null) {
             c.setTitle(cmd.title());
@@ -143,14 +143,13 @@ public class CaseService {
         return result;
     }
 
-    private void ensureCaseTitleIsUnique(String title, Integer groupId, Integer currentCaseId) {
+    private void ensureCaseTitleIsUnique(String title, Integer groupId, Case currentCase) {
         boolean duplicateExists = caseRepository.existsByTitleAndGroupId(title, groupId);
         if (!duplicateExists) {
             return;
         }
 
-        if (currentCaseId != null) {
-            Case currentCase = findOne(currentCaseId);
+        if (currentCase != null) {
             boolean sameTitle = title.equals(currentCase.getTitle());
             boolean sameGroup = groupId.equals(currentCase.getGroup().getId());
             if (sameTitle && sameGroup) {

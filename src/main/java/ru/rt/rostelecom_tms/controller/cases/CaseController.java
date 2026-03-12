@@ -52,19 +52,7 @@ public class CaseController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public CaseResponseDto create(@RequestBody @Valid CaseCreateDto dto) {
-        return CaseMapper.toDto(
-                caseService.create(new CaseService.CreateCaseCommand(
-                        dto.title(),
-                        dto.groupId(),
-                        dto.description(),
-                        dto.preconditions(),
-                        dto.postconditions(),
-                        dto.steps() == null ? null : dto.steps().stream()
-                                .map(s -> new CaseService.StepCommand(
-                                        s.order(), s.title(), s.action(), s.expectedResult()))
-                                .toList()
-                ))
-        );
+        return CaseMapper.toDto(caseService.create(CaseMapper.toCreateCommand(dto)));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -72,17 +60,7 @@ public class CaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{id}")
     public void update(@PathVariable int id, @RequestBody @Valid CaseUpdateDto dto) {
-        caseService.update(id, new CaseService.UpdateCaseCommand(
-                dto.title(),
-                dto.groupId(),
-                dto.description(),
-                dto.preconditions(),
-                dto.postconditions(),
-                dto.steps() == null ? null : dto.steps().stream()
-                        .map(s -> new CaseService.StepCommand(
-                                s.order(), s.title(), s.action(), s.expectedResult()))
-                        .toList()
-        ));
+        caseService.update(id, CaseMapper.toUpdateCommand(dto));
     }
 
     @SecurityRequirement(name = "bearerAuth")
