@@ -43,70 +43,59 @@ public class CaseStepService {
 
     @Transactional
     public List<CaseStep> createCaseSteps(Integer caseId, List<StepCommand> cmd) {
-        Case c = caseRepository.findById(caseId).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
+        Case newCase = caseRepository.findById(caseId).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
 
         validateStepCommands(cmd);
 
-        List<CaseStep> newCaseSteps = buildSteps(cmd, c);
+        List<CaseStep> newCaseSteps = buildSteps(cmd, newCase);
 
-        Set<CaseStep> allSteps = c.getCaseSteps();
+        List<CaseStep> allSteps = new ArrayList<>(newCase.getCaseSteps());
         allSteps.addAll(newCaseSteps);
 
-        c.setCaseSteps(allSteps);
+        validateCaseSteps(allSteps);
 
-        caseRepository.save(c);
+        newCase.setCaseSteps(new HashSet<>(allSteps));
+
+        caseRepository.save(newCase);
 
         return caseStepRepository.saveAll(allSteps);
     }
 
     @Transactional
-    public void updateCaseSteps(Integer caseStepId, UpdateCaseStepCommand cmd) {
-        CaseStep cs = caseStepRepository.findById(caseStepId).orElseThrow(() -> new CaseStepNotFoundException("Couldn't find case step with id: " + caseStepId));
-
-        Case c = cs.getCaseField();
-
-        List<CaseStep> caseSteps  = new ArrayList<>(c.getCaseSteps());
-        caseSteps.remove(cs);
-
-        caseSteps.add(cs);
-        validateCaseSteps(caseSteps);
-
-        Integer newOrder = cmd.order != null ? cmd.order : cs.getOrder();
-        String newTitle = cmd.title != null ? cmd.title : cs.getTitle();
-        String newAction = cmd.action != null ? cmd.action : cs.getAction();
-        String newExpectedResult = cmd.expectedResult != null
-                ? cmd.expectedResult
-                : cs.getExpectedResult();
+    public void updateCaseStep(Integer caseStepId, UpdateCaseStepCommand cmd) {
+        CaseStep caseStep = caseStepRepository.findById(caseStepId).orElseThrow(() -> new CaseStepNotFoundException("Couldn't find case step with id: " + caseStepId));
 
         if (cmd.order != null) {
-            cs.setOrder(newOrder);
+            caseStep.setOrder(cmd.order);
         }
 
         if (cmd.title != null) {
-            cs.setTitle(newTitle);
+            caseStep.setTitle(cmd.title);
         }
 
         if (cmd.action != null) {
-            cs.setAction(newAction);
+            caseStep.setAction(cmd.action);
         }
 
         if (cmd.expectedResult != null) {
-            cs.setExpectedResult(newExpectedResult);
+            caseStep.setExpectedResult(cmd.expectedResult);
         }
 
-        caseStepRepository.save(cs);
+        validateCaseSteps(caseStep.getCaseField().getCaseSteps().stream().toList());
+
+        caseStepRepository.save(caseStep);
     }
 
     @Transactional
-    public void deleteCaseSteps(Integer caseStepId) {
-        CaseStep cs =  caseStepRepository.findById(caseStepId).orElseThrow(() -> new CaseStepNotFoundException("Couldn't find case step with id: " + caseStepId));
+    public void deleteCaseStep(Integer caseStepId) {
+        CaseStep caseStep = caseStepRepository.findById(caseStepId).orElseThrow(() -> new CaseStepNotFoundException("Couldn't find case step with id: " + caseStepId));
 
-        Case c = cs.getCaseField();
-        c.getCaseSteps().remove(cs);
+        Case newCase = caseStep.getCaseField();
+        newCase.getCaseSteps().remove(caseStep);
 
-        caseRepository.save(c);
+        caseRepository.save(newCase);
 
-        caseStepRepository.delete(cs);
+        caseStepRepository.delete(caseStep);
     }
 
     public static List<CaseStep> buildSteps(List<StepCommand> stepCommands, Case parent) {
