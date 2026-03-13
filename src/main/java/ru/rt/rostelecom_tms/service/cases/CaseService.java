@@ -11,10 +11,9 @@ import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import static ru.rt.rostelecom_tms.service.cases.CaseStepService.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,9 +22,6 @@ public class CaseService {
 
     private final CaseRepository caseRepository;
     private final CaseGroupService caseGroupService;
-
-    public record StepCommand(Integer order, String title, String action, String expectedResult) {
-    }
 
     public record CreateCaseCommand(
             String title,
@@ -58,7 +54,7 @@ public class CaseService {
 
     public Case findOne(int id) {
         return caseRepository.findByIdWithSteps(id)
-                .orElseThrow(CaseNotFoundException::new);
+                .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + id));
     }
 
     @Transactional
@@ -124,23 +120,9 @@ public class CaseService {
     @Transactional
     public void delete(int id) {
         if (!caseRepository.existsById(id)) {
-            throw new CaseNotFoundException();
+            throw new CaseNotFoundException("Couldn't find case with id: " + id);
         }
         caseRepository.deleteById(id);
-    }
-
-    private List<CaseStep> buildSteps(List<StepCommand> stepCommands, Case parent) {
-        List<CaseStep> result = new ArrayList<>();
-        for (StepCommand sc : stepCommands) {
-            CaseStep step = new CaseStep();
-            step.setCaseField(parent);
-            step.setOrder(sc.order());
-            step.setTitle(sc.title());
-            step.setAction(sc.action());
-            step.setExpectedResult(sc.expectedResult());
-            result.add(step);
-        }
-        return result;
     }
 
     private void ensureCaseTitleIsUnique(String title, Integer groupId, Case currentCase) {
@@ -162,18 +144,5 @@ public class CaseService {
         );
     }
 
-    private void validateStepCommands(List<StepCommand> stepCommands) {
-        if (stepCommands == null || stepCommands.isEmpty()) {
-            return;
-        }
 
-        Set<Integer> orders = new HashSet<>();
-        for (StepCommand stepCommand : stepCommands) {
-            if (!orders.add(stepCommand.order())) {
-                throw new IllegalArgumentException(
-                        "Case steps must contain unique order values"
-                );
-            }
-        }
-    }
 }
