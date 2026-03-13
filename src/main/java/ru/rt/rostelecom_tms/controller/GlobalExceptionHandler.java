@@ -11,12 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupAlreadyExistsException;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotDeletableException;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotCreatedException;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotFoundException;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 
 import java.util.stream.Collectors;
@@ -25,7 +20,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler({CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class})
+    @ExceptionHandler({CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
