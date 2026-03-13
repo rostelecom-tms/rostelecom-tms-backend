@@ -44,7 +44,7 @@ public class CaseStepController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/case-steps/{caseStepId}")
     public void update(@PathVariable int caseStepId, @RequestBody @Valid CaseStepDto dto) {
-        caseStepService.updateCaseSteps(caseStepId, CaseMapper.toUpdateCommand(dto));
+        caseStepService.updateCaseStep(caseStepId, CaseMapper.toUpdateCommand(dto));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -52,6 +52,6 @@ public class CaseStepController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/case-steps/{caseStepId}")
     public void delete(@PathVariable int caseStepId) {
-        caseStepService.deleteCaseSteps(caseStepId);
+        caseStepService.deleteCaseStep(caseStepId);
     }
 }

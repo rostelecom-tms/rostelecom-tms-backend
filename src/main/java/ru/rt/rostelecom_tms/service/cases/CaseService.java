@@ -63,15 +63,15 @@ public class CaseService {
         CaseGroup group = caseGroupService.findOne(cmd.groupId());
         ensureCaseTitleIsUnique(cmd.title(), group.getId(), null);
 
-        Case c = new Case();
-        c.setTitle(cmd.title());
-        c.setGroup(group);
-        c.setDescription(cmd.description());
-        c.setPreconditions(cmd.preconditions());
-        c.setPostconditions(cmd.postconditions());
-        c.setCreatedAt(Instant.now());
+        Case newCase = new Case();
+        newCase.setTitle(cmd.title());
+        newCase.setGroup(group);
+        newCase.setDescription(cmd.description());
+        newCase.setPreconditions(cmd.preconditions());
+        newCase.setPostconditions(cmd.postconditions());
+        newCase.setCreatedAt(Instant.now());
 
-        Case saved = caseRepository.save(c);
+        Case saved = caseRepository.save(newCase);
 
         if (cmd.steps() != null && !cmd.steps().isEmpty()) {
             List<CaseStep> steps = buildSteps(cmd.steps(), saved);
@@ -85,36 +85,36 @@ public class CaseService {
 
     @Transactional
     public void update(int id, UpdateCaseCommand cmd) {
-        Case c = findOne(id);
+        Case newCase = findOne(id);
         validateStepCommands(cmd.steps());
 
-        String nextTitle = cmd.title() != null ? cmd.title() : c.getTitle();
-        Integer nextGroupId = cmd.groupId() != null ? cmd.groupId() : c.getGroup().getId();
-        ensureCaseTitleIsUnique(nextTitle, nextGroupId, c);
+        String nextTitle = cmd.title() != null ? cmd.title() : newCase.getTitle();
+        Integer nextGroupId = cmd.groupId() != null ? cmd.groupId() : newCase.getGroup().getId();
+        ensureCaseTitleIsUnique(nextTitle, nextGroupId, newCase);
 
         if (cmd.title() != null) {
-            c.setTitle(cmd.title());
+            newCase.setTitle(cmd.title());
         }
         if (cmd.groupId() != null) {
             CaseGroup group = caseGroupService.findOne(cmd.groupId());
-            c.setGroup(group);
+            newCase.setGroup(group);
         }
         if (cmd.description() != null) {
-            c.setDescription(cmd.description());
+            newCase.setDescription(cmd.description());
         }
         if (cmd.preconditions() != null) {
-            c.setPreconditions(cmd.preconditions());
+            newCase.setPreconditions(cmd.preconditions());
         }
         if (cmd.postconditions() != null) {
-            c.setPostconditions(cmd.postconditions());
+            newCase.setPostconditions(cmd.postconditions());
         }
         if (cmd.steps() != null) {
-            c.getCaseSteps().clear();
-            List<CaseStep> steps = buildSteps(cmd.steps(), c);
-            c.getCaseSteps().addAll(steps);
+            newCase.getCaseSteps().clear();
+            List<CaseStep> steps = buildSteps(cmd.steps(), newCase);
+            newCase.getCaseSteps().addAll(steps);
         }
 
-        caseRepository.save(c);
+        caseRepository.save(newCase);
     }
 
     @Transactional
