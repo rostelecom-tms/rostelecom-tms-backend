@@ -1,11 +1,13 @@
 package ru.rt.rostelecom_tms.service.plans;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.plans.Plan;
 import ru.rt.rostelecom_tms.domain.plans.PlansCase;
+import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseNotFoundException;
 import ru.rt.rostelecom_tms.repository.plans.PlansCaseRepository;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
@@ -51,7 +53,13 @@ public class PlansCaseService {
         plansCase.setPlan(plan);
         plansCase.setCaseField(testCase);
 
-        return plansCaseRepository.save(plansCase);
+        try {
+            return plansCaseRepository.save(plansCase);
+        } catch (DataIntegrityViolationException e) {
+            throw new PlansCaseAlreadyExistsException(
+                    "Case with id '" + cmd.caseId() + "' is already added to plan with id '" + cmd.planId() + "'"
+            );
+        }
     }
 
     @Transactional
