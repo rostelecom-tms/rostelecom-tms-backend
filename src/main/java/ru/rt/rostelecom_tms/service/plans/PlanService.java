@@ -56,6 +56,7 @@ public class PlanService {
     @Transactional
     public Plan create(CreatePlanCommand cmd) {
         ensurePlanNameIsUnique(cmd.name(), null);
+        validateDates(cmd.startDate(), cmd.endDate());
 
         Plan plan = new Plan();
         plan.setName(cmd.name());
@@ -70,7 +71,9 @@ public class PlanService {
             plan.setResponsibleUser(user);
         }
 
-        return planRepository.save(plan);
+        Plan saved = planRepository.save(plan);
+        return planRepository.findByIdWithCasesAndUser(saved.getId())
+                .orElseThrow(() -> new PlanNotFoundException("Couldn't reload plan after create, id: " + saved.getId()));
     }
 
     @Transactional
@@ -79,6 +82,10 @@ public class PlanService {
 
         String nextName = cmd.name() != null ? cmd.name() : plan.getName();
         ensurePlanNameIsUnique(nextName, plan);
+
+        LocalDate nextStart = cmd.startDate() != null ? cmd.startDate() : plan.getStartDate();
+        LocalDate nextEnd   = cmd.endDate()   != null ? cmd.endDate()   : plan.getEndDate();
+        validateDates(nextStart, nextEnd);
 
         if (cmd.name() != null) {
             plan.setName(cmd.name());
@@ -109,6 +116,12 @@ public class PlanService {
             throw new PlanNotFoundException("Couldn't find plan with id: " + id);
         }
         planRepository.deleteById(id);
+    }
+
+    private void validateDates(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("endDate must not be before startDate");
+        }
     }
 
     private void ensurePlanNameIsUnique(String name, Plan currentPlan) {
