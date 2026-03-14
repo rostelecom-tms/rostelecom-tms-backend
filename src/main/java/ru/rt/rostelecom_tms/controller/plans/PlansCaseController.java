@@ -36,7 +36,7 @@ public class PlansCaseController {
 
     @GetMapping("/{id}")
     public PlansCaseResponseDto getOne(@PathVariable int planId, @PathVariable int id) {
-        return PlanMapper.toDto(plansCaseService.findOne(id));
+        return PlanMapper.toDto(plansCaseService.findOne(planId, id));
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -52,6 +52,6 @@ public class PlansCaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int planId, @PathVariable int id) {
-        plansCaseService.delete(id);
+        plansCaseService.delete(planId, id);
     }
 }

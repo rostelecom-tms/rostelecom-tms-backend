@@ -41,7 +41,11 @@ public class PlanService {
     ) {}
 
     public List<Plan> findAll() {
-        return planRepository.findAllWithCasesAndUser();
+        List<Plan> plans = planRepository.findAllWithUser();
+        if (plans.isEmpty()) {
+            return plans;
+        }
+        return planRepository.fetchCasesForPlans(plans);
     }
 
     public Plan findOne(int id) {
@@ -112,11 +116,9 @@ public class PlanService {
         if (!duplicateExists) {
             return;
         }
-
         if (currentPlan != null && name.equals(currentPlan.getName())) {
             return;
         }
-
         throw new PlanAlreadyExistsException("Plan with name '" + name + "' already exists");
     }
 }

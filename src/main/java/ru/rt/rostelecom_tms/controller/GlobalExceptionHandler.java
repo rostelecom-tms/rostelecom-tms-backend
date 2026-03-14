@@ -15,7 +15,6 @@ import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
-import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 
 import java.util.stream.Collectors;
@@ -37,8 +36,7 @@ public class GlobalExceptionHandler {
             CaseGroupAlreadyExistsException.class,
             CaseGroupNotCreatedException.class,
             CaseGroupNotDeletableException.class,
-            PlanAlreadyExistsException.class,
-            PlansCaseAlreadyExistsException.class
+            PlanAlreadyExistsException.class
     })
     public ResponseEntity<ErrorResponse> handleCaseConflict(RuntimeException e) {
         return new ResponseEntity<>(
