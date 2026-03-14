@@ -43,22 +43,18 @@ public class CaseStepService {
 
     @Transactional
     public List<CaseStep> createCaseSteps(Integer caseId, List<StepCommand> cmd) {
-        Case newCase = caseRepository.findById(caseId).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
+        Case existingCase = caseRepository.findByIdWithSteps(caseId)
+                .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
 
         validateStepCommands(cmd);
 
-        List<CaseStep> newCaseSteps = buildSteps(cmd, newCase);
+        List<CaseStep> newSteps = buildSteps(cmd, existingCase);
 
-        List<CaseStep> allSteps = new ArrayList<>(newCase.getCaseSteps());
-        allSteps.addAll(newCaseSteps);
+        List<CaseStep> combined = new ArrayList<>(existingCase.getCaseSteps());
+        combined.addAll(newSteps);
+        validateCaseSteps(combined);
 
-        validateCaseSteps(allSteps);
-
-        newCase.setCaseSteps(new HashSet<>(allSteps));
-
-        caseRepository.save(newCase);
-
-        return caseStepRepository.saveAll(allSteps);
+        return caseStepRepository.saveAll(newSteps);
     }
 
     @Transactional
