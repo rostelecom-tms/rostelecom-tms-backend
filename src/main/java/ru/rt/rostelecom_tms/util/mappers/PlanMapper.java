@@ -7,6 +7,7 @@ import ru.rt.rostelecom_tms.service.plans.PlanService;
 import ru.rt.rostelecom_tms.service.plans.PlansCaseService;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class PlanMapper {
@@ -61,6 +62,7 @@ public class PlanMapper {
         List<PlansCaseResponseDto> cases = plan.getPlansCases() == null
                 ? Collections.emptyList()
                 : plan.getPlansCases().stream()
+                        .sorted(Comparator.comparing(PlansCase::getId))
                         .map(PlanMapper::toDto)
                         .toList();
 

@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.plans.Plan;
 import ru.rt.rostelecom_tms.domain.plans.PlansCase;
-import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseNotFoundException;
 import ru.rt.rostelecom_tms.repository.plans.PlansCaseRepository;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
@@ -32,21 +31,21 @@ public class PlansCaseService {
         return plansCaseRepository.findAllByPlanIdWithCase(planId);
     }
 
-    public PlansCase findOne(int id) {
-        return plansCaseRepository.findByIdWithDetails(id)
+    public PlansCase findOne(int planId, int id) {
+        PlansCase pc = plansCaseRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new PlansCaseNotFoundException("Couldn't find plans-case entry with id: " + id));
+        if (!pc.getPlan().getId().equals(planId)) {
+            throw new PlansCaseNotFoundException(
+                    "Plans-case entry with id " + id + " does not belong to plan with id " + planId
+            );
+        }
+        return pc;
     }
 
     @Transactional
     public PlansCase create(CreatePlansCaseCommand cmd) {
         Plan plan = planService.findOne(cmd.planId());
         Case testCase = caseService.findOne(cmd.caseId());
-
-        if (plansCaseRepository.existsByPlanIdAndCaseFieldId(cmd.planId(), cmd.caseId())) {
-            throw new PlansCaseAlreadyExistsException(
-                    "Case with id '" + cmd.caseId() + "' is already added to plan with id '" + cmd.planId() + "'"
-            );
-        }
 
         PlansCase plansCase = new PlansCase();
         plansCase.setPlan(plan);
@@ -56,10 +55,8 @@ public class PlansCaseService {
     }
 
     @Transactional
-    public void delete(int id) {
-        if (!plansCaseRepository.existsById(id)) {
-            throw new PlansCaseNotFoundException("Couldn't find plans-case entry with id: " + id);
-        }
+    public void delete(int planId, int id) {
+        findOne(planId, id);
         plansCaseRepository.deleteById(id);
     }
 }

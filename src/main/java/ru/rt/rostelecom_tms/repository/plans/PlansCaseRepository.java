@@ -17,6 +17,4 @@ public interface PlansCaseRepository extends JpaRepository<PlansCase, Integer> {
 
     @Query("SELECT pc FROM PlansCase pc LEFT JOIN FETCH pc.caseField LEFT JOIN FETCH pc.plan WHERE pc.id = :id")
     Optional<PlansCase> findByIdWithDetails(@Param("id") Integer id);
-
-    boolean existsByPlanIdAndCaseFieldId(Integer planId, Integer caseId);
 }
