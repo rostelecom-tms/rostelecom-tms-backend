@@ -3,9 +3,11 @@ package ru.rt.rostelecom_tms.util.mappers;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
+import ru.rt.rostelecom_tms.domain.cases.Defect;
 import ru.rt.rostelecom_tms.dto.cases.*;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
 import ru.rt.rostelecom_tms.service.cases.CaseStepService;
+import ru.rt.rostelecom_tms.service.cases.DefectService;
 
 import static ru.rt.rostelecom_tms.service.cases.CaseStepService.StepCommand;
 
@@ -37,6 +39,14 @@ public class CaseMapper {
         );
     }
 
+    public static DefectService.CreateDefectCommand toCreateCommand(DefectCreateDto dto) {
+        return new DefectService.CreateDefectCommand(
+                dto.caseId(),
+                dto.title(),
+                dto.description()
+        );
+    }
+
     public static CaseService.UpdateCaseCommand toUpdateCommand(CaseUpdateDto dto) {
         return new CaseService.UpdateCaseCommand(
                 dto.title(),
@@ -56,6 +66,14 @@ public class CaseMapper {
                 dto.title(),
                 dto.action(),
                 dto.expectedResult()
+        );
+    }
+
+    public static DefectService.UpdateDefectCommand toUpdateCommand(DefectUpdateDto dto) {
+        return new DefectService.UpdateDefectCommand(
+                dto.title(),
+                dto.description(),
+                dto.isSolved()
         );
     }
 
@@ -98,6 +116,17 @@ public class CaseMapper {
                 c.getPostconditions(),
                 c.getCreatedAt(),
                 steps
+        );
+    }
+
+    public static DefectResponseDto toDto(Defect defect) {
+        return new DefectResponseDto(
+                defect.getId(),
+                defect.getCaseField().getId(),
+                defect.getTitle(),
+                defect.getDescription(),
+                defect.getIsSolved(),
+                defect.getCreatedAt()
         );
     }
 }
