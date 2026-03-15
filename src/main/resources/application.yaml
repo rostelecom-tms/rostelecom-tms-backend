@@ -2,11 +2,8 @@ spring:
   application:
     name: rostelecom-tms
 
-  config:
-    import: optional:file:.env[.properties]
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/tms
+    url: jdbc:postgresql://tms-db:5432/tms
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -17,7 +14,6 @@ spring:
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
 
 server:
@@ -26,8 +22,4 @@ server:
 
 app:
   cors:
-    allowed-origin: ${FRONTEND_URL}
-
-logging:
-  level:
-    org.springframework.security: DEBUG
+    allowed-origin: ${APP_URL}
