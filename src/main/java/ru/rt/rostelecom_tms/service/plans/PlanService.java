@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.Plan;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
@@ -122,7 +123,7 @@ public class PlanService {
         boolean alreadyLinked = plan.getCases().stream()
                 .anyMatch(c -> c.getId().equals(caseId));
         if (alreadyLinked) {
-            throw new PlanAlreadyExistsException(
+            throw new CaseAlreadyInPlanException(
                     "Case with id '" + caseId + "' is already added to plan with id '" + planId + "'"
             );
         }

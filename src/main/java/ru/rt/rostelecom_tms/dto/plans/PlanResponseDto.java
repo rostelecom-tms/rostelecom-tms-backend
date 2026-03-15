@@ -1,6 +1,6 @@
 package ru.rt.rostelecom_tms.dto.plans;
 
-import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
+import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -18,5 +18,5 @@ public record PlanResponseDto(
         LocalDate endDate,
         PlanResponsibleUserDto responsibleUser,
         Instant createdAt,
-        List<CaseResponseDto> cases
+        List<CaseSimpleResponseDto> cases
 ) {}
