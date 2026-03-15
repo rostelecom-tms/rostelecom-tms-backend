@@ -41,12 +41,12 @@ public class PlanMapper {
         );
     }
 
-    public static PlansCaseResponseDto toDto(PlansCase pc) {
+    public static PlansCaseResponseDto toDto(PlansCase plansCase) {
         return new PlansCaseResponseDto(
-                pc.getId(),
+                plansCase.getId(),
                 new PlansCaseCaseDto(
-                        pc.getCaseField().getId(),
-                        pc.getCaseField().getTitle()
+                        plansCase.getCaseField().getId(),
+                        plansCase.getCaseField().getTitle()
                 )
         );
     }
