@@ -1,13 +1,11 @@
 package ru.rt.rostelecom_tms.service.users;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.domain.users.UserRole;
-import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotCreatedException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
 
@@ -38,11 +36,11 @@ public class UserService {
 
     public User findOne(int id) {
         Optional<User> foundUser = userRepository.findById(id);
-        return foundUser.orElseThrow(UserNotFoundException::new);
+        return foundUser.orElseThrow(() -> new UserNotFoundException("Could not find user with id: " + id));
     }
 
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("Could not find user with email: " + email));
     }
 
     @Transactional

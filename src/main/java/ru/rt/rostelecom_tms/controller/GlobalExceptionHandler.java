@@ -15,6 +15,7 @@ import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.runs.exceptions.RunStatusNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler({CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, PlanNotFoundException.class})
+    @ExceptionHandler({RunStatusNotFoundException.class, CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, PlanNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),

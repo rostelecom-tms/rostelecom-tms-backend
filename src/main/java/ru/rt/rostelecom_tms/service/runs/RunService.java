@@ -19,8 +19,8 @@ import ru.rt.rostelecom_tms.repository.runs.RunStatusRepository;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -68,9 +68,9 @@ public class RunService {
     public Run createRun(CreateRunCommand cmd) {
         Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
 
-        Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
+        Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
-        User user = userRepository.findById(cmd.executedBy).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
+        User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
 
         RunStatus runStatus = runStatusRepository.findById(cmd.statusId()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run with id: " + cmd.statusId()));
 
@@ -82,17 +82,21 @@ public class RunService {
         run.setExecutedBy(user);
         run.setExecutedAt(cmd.executedAt());
 
-        Set<Run> allRuns = plan.getRuns();
-        allRuns.add(run);
-        plan.setRuns(allRuns);
 
-        allRuns = caseFromRun.getRuns();
-        allRuns.add(run);
-        caseFromRun.setRuns(allRuns);
+        if (plan.getRuns() == null) {
+            plan.setRuns(new HashSet<>());
+        }
+        plan.getRuns().add(run);
 
-        allRuns = user.getRuns();
-        allRuns.add(run);
-        user.setRuns(allRuns);
+        if (caseFromRun.getRuns() == null) {
+            caseFromRun.setRuns(new HashSet<>());
+        }
+        caseFromRun.getRuns().add(run);
+
+        if (user.getRuns() == null) {
+            user.setRuns(new HashSet<>());
+        }
+        user.getRuns().add(run);
 
         planRepository.save(plan);
         caseRepository.save(caseFromRun);
