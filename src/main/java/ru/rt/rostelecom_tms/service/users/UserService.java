@@ -41,6 +41,10 @@ public class UserService {
         return foundUser.orElseThrow(UserNotFoundException::new);
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+    }
+
     @Transactional
     public void update(int id, UpdateUserCommand updatedUser) {
         User user = findOne(id);
