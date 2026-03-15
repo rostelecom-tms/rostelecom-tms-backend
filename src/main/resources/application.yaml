@@ -1,9 +1,10 @@
 spring:
   application:
     name: rostelecom-tms
-
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://tms-db:5432/tms
+    url: jdbc:postgresql://localhost:5432/tms
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
