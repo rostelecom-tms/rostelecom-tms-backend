@@ -20,6 +20,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
 
+server:
+  servlet:
+    context-path: /api
+
 logging:
   level:
     org.springframework.security: DEBUG
