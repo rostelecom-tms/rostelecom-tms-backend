@@ -1,7 +1,7 @@
 package ru.rt.rostelecom_tms.util.mappers;
 
 import ru.rt.rostelecom_tms.domain.plans.Plan;
-import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
+import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
 import ru.rt.rostelecom_tms.dto.plans.*;
 import ru.rt.rostelecom_tms.service.plans.PlanService;
 
@@ -40,10 +40,10 @@ public class PlanMapper {
                         plan.getResponsibleUser().getEmail()
                 );
 
-        List<CaseResponseDto> cases = plan.getCases() == null
+        List<CaseSimpleResponseDto> cases = plan.getCases() == null
                 ? Collections.emptyList()
                 : plan.getCases().stream()
-                        .map(CaseMapper::toDto)
+                        .map(CaseMapper::toSimpleDto)
                         .toList();
 
         return new PlanResponseDto(

@@ -59,6 +59,10 @@ public class CaseMapper {
         );
     }
 
+    public static CaseSimpleResponseDto toSimpleDto(Case c) {
+        return new CaseSimpleResponseDto(c.getId(), c.getTitle());
+    }
+
     public static CaseGroupResponseDto toDto(CaseGroup group) {
         return new CaseGroupResponseDto(
                 group.getId(),

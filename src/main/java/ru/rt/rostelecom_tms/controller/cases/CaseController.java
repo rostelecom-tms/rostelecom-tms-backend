@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.rt.rostelecom_tms.dto.cases.CaseCreateDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
+import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseUpdateDto;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
 import ru.rt.rostelecom_tms.util.mappers.CaseMapper;
@@ -31,22 +32,22 @@ public class CaseController {
     private final CaseService caseService;
 
     @GetMapping
-    public List<CaseResponseDto> getAll(
+    public List<CaseSimpleResponseDto> getAll(
             @RequestParam(required = false) Integer groupId,
             @RequestParam(required = false) Integer planId
     ) {
         if (planId != null) {
             return caseService.findAllByPlan(planId).stream()
-                    .map(CaseMapper::toDto)
+                    .map(CaseMapper::toSimpleDto)
                     .toList();
         }
         if (groupId != null) {
             return caseService.findAllByGroup(groupId).stream()
-                    .map(CaseMapper::toDto)
+                    .map(CaseMapper::toSimpleDto)
                     .toList();
         }
         return caseService.findAll().stream()
-                .map(CaseMapper::toDto)
+                .map(CaseMapper::toSimpleDto)
                 .toList();
     }
 

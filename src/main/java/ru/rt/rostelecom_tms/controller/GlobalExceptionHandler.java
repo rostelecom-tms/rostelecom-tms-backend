@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
@@ -32,6 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             CaseAlreadyExistsException.class,
+            CaseAlreadyInPlanException.class,
             CaseGroupAlreadyExistsException.class,
             CaseGroupNotCreatedException.class,
             CaseGroupNotDeletableException.class,
