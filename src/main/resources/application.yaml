@@ -24,6 +24,10 @@ server:
   servlet:
     context-path: /api
 
+app:
+  cors:
+    allowed-origin: ${FRONTEND_URL}
+
 logging:
   level:
     org.springframework.security: DEBUG
