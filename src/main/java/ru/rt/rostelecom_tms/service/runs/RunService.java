@@ -65,6 +65,7 @@ public class RunService {
 
     public List<Run> findAllByGroupId(Integer groupId) { return runRepository.findRunsByCaseFieldGroupId(groupId); }
 
+    @Transactional
     public Run createRun(CreateRunCommand cmd) {
         Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
 
@@ -72,7 +73,7 @@ public class RunService {
 
         User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
 
-        RunStatus runStatus = runStatusRepository.findById(cmd.statusId()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run with id: " + cmd.statusId()));
+        RunStatus runStatus = runStatusRepository.findById(cmd.statusId()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with id: " + cmd.statusId()));
 
         Run run = new Run();
 
@@ -105,6 +106,7 @@ public class RunService {
         return runRepository.save(run);
     }
 
+    @Transactional
     public Run createRun(CreateRunCommandFromBulk cmd) {
         Integer statusId = runStatusRepository.findBySlug(cmd.statusSlug()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run with slug: " + cmd.statusSlug())).getId();
 

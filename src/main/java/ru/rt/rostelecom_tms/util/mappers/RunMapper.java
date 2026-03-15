@@ -17,18 +17,6 @@ public class RunMapper {
                 run.getPlan().getId(),
                 run.getStatus().getName(),
                 run.getStatus().getSlug(),
-                run.getPlan().getResponsibleUser().getId(),
-                run.getExecutedAt()
-        );
-    }
-
-    public static RunResponseDto toDto(Run run) {
-        return new RunResponseDto(
-                run.getId(),
-                run.getCaseField().getId(),
-                run.getPlan().getId(),
-                run.getStatus().getName(),
-                run.getStatus().getSlug(),
                 run.getExecutedBy().getId(),
                 run.getExecutedAt()
         );
