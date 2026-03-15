@@ -7,12 +7,15 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.runs.Run;
 import ru.rt.rostelecom_tms.domain.users.User;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -50,10 +53,14 @@ public class Plan {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-
     @OneToMany(mappedBy = "plan")
     private Set<Run> runs = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "plan")
-    private Set<PlansCase> plansCases = new LinkedHashSet<>();
+    @ManyToMany
+    @JoinTable(
+            name = "plans_cases",
+            joinColumns = @JoinColumn(name = "plan_id"),
+            inverseJoinColumns = @JoinColumn(name = "case_id")
+    )
+    private List<Case> cases = new ArrayList<>();
 }

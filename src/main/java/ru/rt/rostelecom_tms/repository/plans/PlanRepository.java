@@ -18,11 +18,11 @@ public interface PlanRepository extends JpaRepository<Plan, Integer> {
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     List<Plan> findAllWithUser();
 
-    @Query("SELECT DISTINCT p FROM Plan p LEFT JOIN FETCH p.plansCases pc LEFT JOIN FETCH pc.caseField WHERE p IN :plans")
+    @Query("SELECT DISTINCT p FROM Plan p LEFT JOIN FETCH p.cases WHERE p IN :plans")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     List<Plan> fetchCasesForPlans(@Param("plans") List<Plan> plans);
 
-    @Query("SELECT p FROM Plan p LEFT JOIN FETCH p.plansCases pc LEFT JOIN FETCH pc.caseField LEFT JOIN FETCH p.responsibleUser WHERE p.id = :id")
+    @Query("SELECT p FROM Plan p LEFT JOIN FETCH p.cases LEFT JOIN FETCH p.responsibleUser WHERE p.id = :id")
     Optional<Plan> findByIdWithCasesAndUser(@Param("id") Integer id);
 
     boolean existsByName(String name);

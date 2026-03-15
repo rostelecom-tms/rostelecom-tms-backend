@@ -31,7 +31,15 @@ public class CaseController {
     private final CaseService caseService;
 
     @GetMapping
-    public List<CaseResponseDto> getAll(@RequestParam(required = false) Integer groupId) {
+    public List<CaseResponseDto> getAll(
+            @RequestParam(required = false) Integer groupId,
+            @RequestParam(required = false) Integer planId
+    ) {
+        if (planId != null) {
+            return caseService.findAllByPlan(planId).stream()
+                    .map(CaseMapper::toDto)
+                    .toList();
+        }
         if (groupId != null) {
             return caseService.findAllByGroup(groupId).stream()
                     .map(CaseMapper::toDto)

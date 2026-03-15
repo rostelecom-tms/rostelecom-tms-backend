@@ -1,13 +1,11 @@
 package ru.rt.rostelecom_tms.util.mappers;
 
 import ru.rt.rostelecom_tms.domain.plans.Plan;
-import ru.rt.rostelecom_tms.domain.plans.PlansCase;
+import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
 import ru.rt.rostelecom_tms.dto.plans.*;
 import ru.rt.rostelecom_tms.service.plans.PlanService;
-import ru.rt.rostelecom_tms.service.plans.PlansCaseService;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class PlanMapper {
@@ -34,23 +32,6 @@ public class PlanMapper {
         );
     }
 
-    public static PlansCaseService.CreatePlansCaseCommand toCreateCommand(int planId, PlansCaseCreateDto dto) {
-        return new PlansCaseService.CreatePlansCaseCommand(
-                planId,
-                dto.caseId()
-        );
-    }
-
-    public static PlansCaseResponseDto toDto(PlansCase plansCase) {
-        return new PlansCaseResponseDto(
-                plansCase.getId(),
-                new PlansCaseCaseDto(
-                        plansCase.getCaseField().getId(),
-                        plansCase.getCaseField().getTitle()
-                )
-        );
-    }
-
     public static PlanResponseDto toDto(Plan plan) {
         PlanResponsibleUserDto responsibleUser = plan.getResponsibleUser() == null ? null
                 : new PlanResponsibleUserDto(
@@ -59,11 +40,10 @@ public class PlanMapper {
                         plan.getResponsibleUser().getEmail()
                 );
 
-        List<PlansCaseResponseDto> cases = plan.getPlansCases() == null
+        List<CaseResponseDto> cases = plan.getCases() == null
                 ? Collections.emptyList()
-                : plan.getPlansCases().stream()
-                        .sorted(Comparator.comparing(PlansCase::getId))
-                        .map(PlanMapper::toDto)
+                : plan.getCases().stream()
+                        .map(CaseMapper::toDto)
                         .toList();
 
         return new PlanResponseDto(

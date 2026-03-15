@@ -64,4 +64,20 @@ public class PlanController {
     public void delete(@PathVariable int id) {
         planService.delete(id);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/{id}/add-case/{caseId}")
+    public void addCase(@PathVariable int id, @PathVariable int caseId) {
+        planService.addCase(id, caseId);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}/remove-case/{caseId}")
+    public void removeCase(@PathVariable int id, @PathVariable int caseId) {
+        planService.removeCase(id, caseId);
+    }
 }
