@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
-import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
-import ru.rt.rostelecom_tms.domain.plans.exceptions.PlansCaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 
 import java.util.stream.Collectors;
@@ -24,7 +22,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler({CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, PlanNotFoundException.class, PlansCaseNotFoundException.class})
+    @ExceptionHandler({CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, PlanNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
@@ -37,8 +35,7 @@ public class GlobalExceptionHandler {
             CaseGroupAlreadyExistsException.class,
             CaseGroupNotCreatedException.class,
             CaseGroupNotDeletableException.class,
-            PlanAlreadyExistsException.class,
-            PlansCaseAlreadyExistsException.class
+            PlanAlreadyExistsException.class
     })
     public ResponseEntity<ErrorResponse> handleCaseConflict(RuntimeException e) {
         return new ResponseEntity<>(

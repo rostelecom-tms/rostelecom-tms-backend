@@ -3,11 +3,14 @@ package ru.rt.rostelecom_tms.service.plans;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.domain.cases.Case;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.Plan;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.repository.plans.PlanRepository;
+import ru.rt.rostelecom_tms.service.cases.CaseService;
 import ru.rt.rostelecom_tms.service.users.UserService;
 
 import java.time.Instant;
@@ -21,6 +24,7 @@ public class PlanService {
 
     private final PlanRepository planRepository;
     private final UserService userService;
+    private final CaseService caseService;
 
     public record CreatePlanCommand(
             String name,
@@ -105,6 +109,37 @@ public class PlanService {
         if (cmd.responsibleUserId() != null) {
             User user = userService.findOne(cmd.responsibleUserId());
             plan.setResponsibleUser(user);
+        }
+
+        planRepository.save(plan);
+    }
+
+    @Transactional
+    public void addCase(int planId, int caseId) {
+        Plan plan = findOne(planId);
+        Case testCase = caseService.findOne(caseId);
+
+        boolean alreadyLinked = plan.getCases().stream()
+                .anyMatch(c -> c.getId().equals(caseId));
+        if (alreadyLinked) {
+            throw new PlanAlreadyExistsException(
+                    "Case with id '" + caseId + "' is already added to plan with id '" + planId + "'"
+            );
+        }
+
+        plan.getCases().add(testCase);
+        planRepository.save(plan);
+    }
+
+    @Transactional
+    public void removeCase(int planId, int caseId) {
+        Plan plan = findOne(planId);
+
+        boolean removed = plan.getCases().removeIf(c -> c.getId().equals(caseId));
+        if (!removed) {
+            throw new CaseNotFoundException(
+                    "Case with id '" + caseId + "' is not in plan with id '" + planId + "'"
+            );
         }
 
         planRepository.save(plan);

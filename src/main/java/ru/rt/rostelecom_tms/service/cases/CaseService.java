@@ -52,6 +52,10 @@ public class CaseService {
         return caseRepository.findAllByGroupIdWithSteps(groupId);
     }
 
+    public List<Case> findAllByPlan(int planId) {
+        return caseRepository.findAllByPlanId(planId);
+    }
+
     public Case findOne(int id) {
         return caseRepository.findByIdWithSteps(id)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + id));

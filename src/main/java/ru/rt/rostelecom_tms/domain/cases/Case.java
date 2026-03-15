@@ -7,11 +7,13 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import ru.rt.rostelecom_tms.domain.plans.PlansCase;
+import ru.rt.rostelecom_tms.domain.plans.Plan;
 import ru.rt.rostelecom_tms.domain.runs.Run;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -52,8 +54,8 @@ public class Case {
     @OneToMany(mappedBy = "caseField")
     private Set<Defect> defects = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "caseField")
-    private Set<PlansCase> plansCases = new LinkedHashSet<>();
+    @ManyToMany(mappedBy = "cases")
+    private List<Plan> plans = new ArrayList<>();
 
     @OneToMany(mappedBy = "caseField")
     private Set<Run> runs = new LinkedHashSet<>();
