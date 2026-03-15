@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+    <changeSet id="seed-run-statuses" author="yaroslav">
+        <insert tableName="run_statuses">
+            <column name="name" value="passed"/>
+            <column name="slug" value="passed"/>
+        </insert>
+
+        <insert tableName="run_statuses">
+            <column name="name" value="skipped"/>
+            <column name="slug" value="skipped"/>
+        </insert>
+
+        <insert tableName="run_statuses">
+            <column name="name" value="failed"/>
+            <column name="slug" value="failed"/>
+        </insert>
+
+        <insert tableName="run_statuses">
+            <column name="name" value="broken"/>
+            <column name="slug" value="broken"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
