@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://tms-db:5432/${POSTGRES_DB}
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
