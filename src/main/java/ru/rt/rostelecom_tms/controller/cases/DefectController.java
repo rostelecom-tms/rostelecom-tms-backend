@@ -32,6 +32,7 @@ public class DefectController {
                 .toList();
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -39,6 +40,7 @@ public class DefectController {
         return CaseMapper.toDto(defectService.create(CaseMapper.toCreateCommand(dto)));
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{id}")

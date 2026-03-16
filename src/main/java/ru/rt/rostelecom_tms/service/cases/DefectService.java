@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefectService {
 
-    private  final DefectRepository defectRepository;
+    private final DefectRepository defectRepository;
     private final CaseRepository caseRepository;
 
     public record CreateDefectCommand(
@@ -33,17 +33,12 @@ public class DefectService {
             Boolean isSolved
     ) {}
 
-    public Defect findOneById(Integer id) {
-        return defectRepository.findById(id)
-                .orElseThrow(() -> new DefectNotFoundException("Couldn't find defect with id: " + id));
-    }
-
     public List<Defect> findAllByCaseId(Integer caseId) {
         if (caseId == null) {
             return defectRepository.findAll();
         }
 
-        return defectRepository.findAllByCaseId(caseId);
+        return defectRepository.findByCaseFieldIdOrderByCreatedAtDesc(caseId);
     }
 
     @Transactional
@@ -66,7 +61,7 @@ public class DefectService {
     @Transactional
     public void update(Integer id, UpdateDefectCommand cmd) {
         Defect defect = defectRepository.findById(id)
-                .orElseThrow(() -> new CaseNotFoundException("Couldn't find defect with id: " + id));
+                .orElseThrow(() -> new DefectNotFoundException("Couldn't find defect with id: " + id));
 
         if (cmd.title() != null) {
             defect.setTitle(cmd.title());
