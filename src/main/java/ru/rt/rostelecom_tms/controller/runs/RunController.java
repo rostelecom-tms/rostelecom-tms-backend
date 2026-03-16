@@ -3,7 +3,6 @@ package ru.rt.rostelecom_tms.controller.runs;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.rt.rostelecom_tms.domain.runs.Run;
 import ru.rt.rostelecom_tms.dto.runs.RunBulkDto;
 import ru.rt.rostelecom_tms.dto.runs.RunCreateDto;
 import ru.rt.rostelecom_tms.dto.runs.RunResponseDto;
@@ -30,28 +29,17 @@ public class RunController {
             @RequestParam(required = false) Instant executedTo,
             @RequestParam(required = false) Integer groupId
     ) {
+        return runService.findAllWithProbableFilters(
+                planId,
+                caseId,
+                statusId,
+                statusSlug,
+                executedBy,
+                executedFrom,
+                executedTo,
+                groupId
+        ).stream().map(RunMapper::toRunResponseDto).toList();
 
-        List<Run> runsFromServiceResponse;
-
-        if (planId != null) {
-            runsFromServiceResponse = runService.findAllByPlanId(planId);
-        } else if (caseId != null) {
-           runsFromServiceResponse = runService.findAllByCaseId(caseId);
-        } else if (statusId != null) {
-            runsFromServiceResponse = runService.findAllByStatusId(statusId);
-        } else if (statusSlug != null) {
-            runsFromServiceResponse = runService.findAllByStatusSlug(statusSlug);
-        } else if (executedBy != null) {
-            runsFromServiceResponse = runService.findAllByExecutedBy(executedBy);
-        } else if (executedFrom != null && executedTo != null) {
-            runsFromServiceResponse = runService.findAllByExecutedFromAndTo(executedFrom, executedTo);
-        } else if (groupId != null) {
-            runsFromServiceResponse = runService.findAllByGroupId(groupId);
-        } else {
-            runsFromServiceResponse = runService.findAll();
-        }
-
-        return runsFromServiceResponse.stream().map(RunMapper::toRunResponseDto).toList();
     }
 
     @PostMapping
@@ -59,8 +47,8 @@ public class RunController {
         return RunMapper.toRunResponseDto(runService.createRun(RunMapper.toCreateRunCommand(runCreateDto)));
     }
 
-    @PostMapping("/:bulk")
+    @PostMapping("/bulk")
     public List<RunResponseDto> createBulk(@RequestBody @Valid RunBulkDto runBulkCreateDto) {
-        return RunMapper.toCreateRunCommandsFromBulk(runBulkCreateDto).stream().map(runService::createRun).map(RunMapper::toRunResponseDto).toList();
+        return runService.createRunsBulk(RunMapper.toCreateRunCommandsFromBulk(runBulkCreateDto)).stream().map(RunMapper::toRunResponseDto).toList();
     }
 }

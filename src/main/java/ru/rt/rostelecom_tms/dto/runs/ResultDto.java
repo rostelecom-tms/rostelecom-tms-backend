@@ -11,6 +11,6 @@ import java.time.Instant;
  */
 public record ResultDto(
         @NotNull Integer caseId,
-        @NotNull @NotBlank String statusSlug,
+        @NotBlank String statusSlug,
         @NotNull Instant executedAt
 ) {}

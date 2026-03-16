@@ -19,7 +19,6 @@ import ru.rt.rostelecom_tms.repository.runs.RunStatusRepository;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -49,21 +48,40 @@ public class RunService {
             Instant executedAt
     ) {}
 
-    public List<Run> findAll() { return runRepository.findAllWithPlanAndCase(); }
+    public List<Run> findAllWithProbableFilters(
+            Integer planId,
+            Integer caseId,
+            Integer statusId,
+            String statusSlug,
+            Integer executedBy,
+            Instant executedFrom,
+            Instant executedTo,
+            Integer groupId
+    ) {
+        List<Run> runsFromServiceResponse;
 
-    public List<Run> findAllByPlanId(Integer planId) { return runRepository.findRunsByPlanId(planId); }
+        if (planId != null) {
+            runsFromServiceResponse = runRepository.findByPlanId(planId);
+        } else if (caseId != null) {
+            runsFromServiceResponse = runRepository.findByCaseFieldId(caseId);
+        } else if (statusId != null) {
+            runsFromServiceResponse = runRepository.findByStatusId(statusId);
+        } else if (statusSlug != null) {
+            runsFromServiceResponse = runRepository.findByStatusSlug(statusSlug);
+        } else if (executedBy != null) {
+            runsFromServiceResponse = runRepository.findByExecutedById(executedBy);
+        } else if (executedFrom != null && executedTo != null) {
+            runsFromServiceResponse = runRepository.findByExecutedAtBetween(executedFrom, executedTo);
+        } else if (groupId != null) {
+            runsFromServiceResponse = runRepository.findByCaseFieldGroupId(groupId);
+        } else {
+            runsFromServiceResponse = runRepository.findAll();
+        }
 
-    public List<Run> findAllByCaseId(Integer caseId) { return runRepository.findRunsByCaseId(caseId); }
+        return runsFromServiceResponse;
+    }
 
-    public List<Run> findAllByStatusId(Integer statusId) { return runRepository.findRunsByStatusId(statusId); }
 
-    public List<Run> findAllByStatusSlug(String slug) { return runRepository.findRunsByStatusSlug(slug); }
-
-    public List<Run> findAllByExecutedBy(Integer executedBy) { return runRepository.findRunsByExecutedBy(executedBy); }
-
-    public List<Run> findAllByExecutedFromAndTo(Instant executedFrom, Instant executedTo) { return runRepository.findRunsByExecutedFromAndTo(executedFrom, executedTo); }
-
-    public List<Run> findAllByGroupId(Integer groupId) { return runRepository.findRunsByCaseFieldGroupId(groupId); }
 
     @Transactional
     public Run createRun(CreateRunCommand cmd) {
@@ -83,41 +101,34 @@ public class RunService {
         run.setExecutedBy(user);
         run.setExecutedAt(cmd.executedAt());
 
-
-        if (plan.getRuns() == null) {
-            plan.setRuns(new HashSet<>());
-        }
-        plan.getRuns().add(run);
-
-        if (caseFromRun.getRuns() == null) {
-            caseFromRun.setRuns(new HashSet<>());
-        }
-        caseFromRun.getRuns().add(run);
-
-        if (user.getRuns() == null) {
-            user.setRuns(new HashSet<>());
-        }
-        user.getRuns().add(run);
-
-        planRepository.save(plan);
-        caseRepository.save(caseFromRun);
-        userRepository.save(user);
-
         return runRepository.save(run);
     }
 
     @Transactional
-    public Run createRun(CreateRunCommandFromBulk cmd) {
-        Integer statusId = runStatusRepository.findBySlug(cmd.statusSlug()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run with slug: " + cmd.statusSlug())).getId();
+    public List<Run> createRunsBulk(List<CreateRunCommandFromBulk> commands) {
 
-        return createRun(
-                new CreateRunCommand(
-                    cmd.planId(),
-                    cmd.caseId(),
-                    statusId,
-                    cmd.executedBy(),
-                    cmd.executedAt()
-                )
-        );
+        List<Run> runs = commands.stream().map(
+                cmd -> {
+                    Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
+
+                    Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
+
+                    User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
+
+                    RunStatus runStatus = runStatusRepository.findBySlug(cmd.statusSlug()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with slug: " + cmd.statusSlug()));
+
+                    Run run = new Run();
+
+                    run.setPlan(plan);
+                    run.setCaseField(caseFromRun);
+                    run.setStatus(runStatus);
+                    run.setExecutedBy(user);
+                    run.setExecutedAt(cmd.executedAt());
+
+                    return run;
+                }
+                ).toList();
+
+        return runs.stream().map(runRepository::save).toList();
     }
 }

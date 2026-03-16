@@ -1,6 +1,7 @@
 package ru.rt.rostelecom_tms.dto.runs;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -8,5 +9,5 @@ import java.util.List;
 public record RunBulkDto (
     @NotNull Integer planId,
     @NotNull Integer executedBy,
-    @Valid List<ResultDto> results
+    @Valid @NotEmpty List<ResultDto> results
 ) {}
