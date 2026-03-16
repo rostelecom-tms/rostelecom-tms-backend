@@ -12,7 +12,6 @@ import java.util.Optional;
 @Repository
 public interface DefectRepository extends JpaRepository<Defect, Integer> {
 
-    @Query("SELECT d FROM Defect d JOIN FETCH d.caseField c WHERE c.id = :caseId ORDER BY d.createdAt DESC")
-    List<Defect> findAllByCaseId(@Param("caseId") Integer caseId);
+    List<Defect> findByCaseFieldIdOrderByCreatedAtDesc(Integer caseId);
 
 }
