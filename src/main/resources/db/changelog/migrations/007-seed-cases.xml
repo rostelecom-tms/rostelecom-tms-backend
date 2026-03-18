@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="007-seed-cases" author="edwin">
+        <!-- groups -->
+        <insert tableName="case_groups">
+            <column name="id" valueNumeric="100"/>
+            <column name="name" value="Authentication"/>
+            <column name="slug" value="authentication"/>
+        </insert>
+
+        <insert tableName="case_groups">
+            <column name="id" valueNumeric="101"/>
+            <column name="name" value="Profile"/>
+            <column name="slug" value="profile"/>
+        </insert>
+
+        <insert tableName="case_groups">
+            <column name="id" valueNumeric="102"/>
+            <column name="name" value="Orders"/>
+            <column name="slug" value="orders"/>
+        </insert>
+
+        <!-- cases -->
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1000"/>
+            <column name="title" value="Successful login with valid credentials"/>
+            <column name="group_id" valueNumeric="100"/>
+            <column name="description" value="User logs in with correct email and password."/>
+            <column name="preconditions" value="User account exists and is active."/>
+            <column name="postconditions" value="User is redirected to dashboard."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1001"/>
+            <column name="title" value="Login fails with invalid password"/>
+            <column name="group_id" valueNumeric="100"/>
+            <column name="description" value="System shows error when password is incorrect."/>
+            <column name="preconditions" value="User account exists."/>
+            <column name="postconditions" value="User stays on login page."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1002"/>
+            <column name="title" value="User can logout successfully"/>
+            <column name="group_id" valueNumeric="100"/>
+            <column name="description" value="Authenticated user logs out from the system."/>
+            <column name="preconditions" value="User is logged in."/>
+            <column name="postconditions" value="Session is terminated."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1003"/>
+            <column name="title" value="User can view profile page"/>
+            <column name="group_id" valueNumeric="101"/>
+            <column name="description" value="Authenticated user opens profile page."/>
+            <column name="preconditions" value="User is logged in."/>
+            <column name="postconditions" value="Profile data is displayed."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1004"/>
+            <column name="title" value="User can update profile name"/>
+            <column name="group_id" valueNumeric="101"/>
+            <column name="description" value="User changes profile name and saves changes."/>
+            <column name="preconditions" value="User is logged in and profile page is accessible."/>
+            <column name="postconditions" value="New name is saved and shown in UI."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1005"/>
+            <column name="title" value="User cannot save empty profile name"/>
+            <column name="group_id" valueNumeric="101"/>
+            <column name="description" value="Validation prevents saving empty profile name."/>
+            <column name="preconditions" value="User is logged in."/>
+            <column name="postconditions" value="Validation error is shown."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1006"/>
+            <column name="title" value="User can create a new order"/>
+            <column name="group_id" valueNumeric="102"/>
+            <column name="description" value="User creates a new order with valid data."/>
+            <column name="preconditions" value="User is logged in and has at least one product available."/>
+            <column name="postconditions" value="Order is created successfully."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1007"/>
+            <column name="title" value="Order list displays created orders"/>
+            <column name="group_id" valueNumeric="102"/>
+            <column name="description" value="User sees previously created orders in the list."/>
+            <column name="preconditions" value="There is at least one existing order."/>
+            <column name="postconditions" value="Order list contains expected records."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1008"/>
+            <column name="title" value="User can open order details page"/>
+            <column name="group_id" valueNumeric="102"/>
+            <column name="description" value="User opens detailed view of a selected order."/>
+            <column name="preconditions" value="There is at least one existing order."/>
+            <column name="postconditions" value="Order details are displayed."/>
+        </insert>
+
+        <insert tableName="cases">
+            <column name="id" valueNumeric="1009"/>
+            <column name="title" value="User can cancel draft order"/>
+            <column name="group_id" valueNumeric="102"/>
+            <column name="description" value="User cancels an order that is still in draft status."/>
+            <column name="preconditions" value="Draft order exists."/>
+            <column name="postconditions" value="Order status is changed to cancelled."/>
+        </insert>
+
+        <rollback>
+            <delete tableName="cases">
+                <where>id between 1000 and 1009</where>
+            </delete>
+            <delete tableName="case_groups">
+                <where>id between 100 and 102</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="003-seed-case-steps" author="edwin">
+        <!-- case 1000 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2000"/>
+            <column name="case_id" valueNumeric="1000"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open login page"/>
+            <column name="action" value="Navigate to the login page."/>
+            <column name="expected_result" value="Login form is displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2001"/>
+            <column name="case_id" valueNumeric="1000"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Enter valid email"/>
+            <column name="action" value="Fill in a registered email."/>
+            <column name="expected_result" value="Email field accepts value."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2002"/>
+            <column name="case_id" valueNumeric="1000"/>
+            <column name="order" valueNumeric="3"/>
+            <column name="title" value="Enter valid password"/>
+            <column name="action" value="Fill in a correct password."/>
+            <column name="expected_result" value="Password field accepts value."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2003"/>
+            <column name="case_id" valueNumeric="1000"/>
+            <column name="order" valueNumeric="4"/>
+            <column name="title" value="Submit form"/>
+            <column name="action" value="Click the login button."/>
+            <column name="expected_result" value="User is redirected to dashboard."/>
+        </insert>
+
+        <!-- case 1001 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2004"/>
+            <column name="case_id" valueNumeric="1001"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open login page"/>
+            <column name="action" value="Navigate to the login page."/>
+            <column name="expected_result" value="Login form is displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2005"/>
+            <column name="case_id" valueNumeric="1001"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Enter valid email"/>
+            <column name="action" value="Fill in a registered email."/>
+            <column name="expected_result" value="Email field accepts value."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2006"/>
+            <column name="case_id" valueNumeric="1001"/>
+            <column name="order" valueNumeric="3"/>
+            <column name="title" value="Enter invalid password"/>
+            <column name="action" value="Fill in an incorrect password."/>
+            <column name="expected_result" value="Password field accepts value."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2007"/>
+            <column name="case_id" valueNumeric="1001"/>
+            <column name="order" valueNumeric="4"/>
+            <column name="title" value="Submit form"/>
+            <column name="action" value="Click the login button."/>
+            <column name="expected_result" value="Error message about invalid credentials is shown."/>
+        </insert>
+
+        <!-- case 1002 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2008"/>
+            <column name="case_id" valueNumeric="1002"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open user menu"/>
+            <column name="action" value="Click on the profile or menu button in header."/>
+            <column name="expected_result" value="Dropdown menu is displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2009"/>
+            <column name="case_id" valueNumeric="1002"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Click logout"/>
+            <column name="action" value="Select logout action."/>
+            <column name="expected_result" value="User session is terminated and login page is shown."/>
+        </insert>
+
+        <!-- case 1003 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2010"/>
+            <column name="case_id" valueNumeric="1003"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open profile section"/>
+            <column name="action" value="Navigate to profile page from main menu."/>
+            <column name="expected_result" value="Profile page opens."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2011"/>
+            <column name="case_id" valueNumeric="1003"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Check user data"/>
+            <column name="action" value="Review visible profile fields."/>
+            <column name="expected_result" value="Profile data is displayed correctly."/>
+        </insert>
+
+        <!-- case 1004 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2012"/>
+            <column name="case_id" valueNumeric="1004"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open profile page"/>
+            <column name="action" value="Navigate to profile page."/>
+            <column name="expected_result" value="Profile page opens."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2013"/>
+            <column name="case_id" valueNumeric="1004"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Edit name"/>
+            <column name="action" value="Enter a new profile name in the name field."/>
+            <column name="expected_result" value="New value is shown in input."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2014"/>
+            <column name="case_id" valueNumeric="1004"/>
+            <column name="order" valueNumeric="3"/>
+            <column name="title" value="Save changes"/>
+            <column name="action" value="Click save button."/>
+            <column name="expected_result" value="Success message is shown and updated name is persisted."/>
+        </insert>
+
+        <!-- case 1005 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2015"/>
+            <column name="case_id" valueNumeric="1005"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open profile page"/>
+            <column name="action" value="Navigate to profile page."/>
+            <column name="expected_result" value="Profile page opens."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2016"/>
+            <column name="case_id" valueNumeric="1005"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Clear name field"/>
+            <column name="action" value="Remove current value from name field."/>
+            <column name="expected_result" value="Name field becomes empty."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2017"/>
+            <column name="case_id" valueNumeric="1005"/>
+            <column name="order" valueNumeric="3"/>
+            <column name="title" value="Save profile"/>
+            <column name="action" value="Click save button."/>
+            <column name="expected_result" value="Validation error is shown and changes are not saved."/>
+        </insert>
+
+        <!-- case 1006 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2018"/>
+            <column name="case_id" valueNumeric="1006"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open order creation form"/>
+            <column name="action" value="Navigate to the new order page."/>
+            <column name="expected_result" value="Order creation form is displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2019"/>
+            <column name="case_id" valueNumeric="1006"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Fill order data"/>
+            <column name="action" value="Select product and provide required order information."/>
+            <column name="expected_result" value="Form fields are filled with valid values."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2020"/>
+            <column name="case_id" valueNumeric="1006"/>
+            <column name="order" valueNumeric="3"/>
+            <column name="title" value="Submit order"/>
+            <column name="action" value="Click create order button."/>
+            <column name="expected_result" value="Order is created and confirmation is shown."/>
+        </insert>
+
+        <!-- case 1007 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2021"/>
+            <column name="case_id" valueNumeric="1007"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open orders page"/>
+            <column name="action" value="Navigate to order list page."/>
+            <column name="expected_result" value="Orders table is displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2022"/>
+            <column name="case_id" valueNumeric="1007"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Review list contents"/>
+            <column name="action" value="Check visible order rows."/>
+            <column name="expected_result" value="Previously created orders are present in the list."/>
+        </insert>
+
+        <!-- case 1008 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2023"/>
+            <column name="case_id" valueNumeric="1008"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open orders list"/>
+            <column name="action" value="Navigate to order list page."/>
+            <column name="expected_result" value="Order list is displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2024"/>
+            <column name="case_id" valueNumeric="1008"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Open order details"/>
+            <column name="action" value="Click on an existing order row."/>
+            <column name="expected_result" value="Order details page opens with full information."/>
+        </insert>
+
+        <!-- case 1009 -->
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2025"/>
+            <column name="case_id" valueNumeric="1009"/>
+            <column name="order" valueNumeric="1"/>
+            <column name="title" value="Open draft order"/>
+            <column name="action" value="Navigate to a draft order details page."/>
+            <column name="expected_result" value="Draft order details are displayed."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2026"/>
+            <column name="case_id" valueNumeric="1009"/>
+            <column name="order" valueNumeric="2"/>
+            <column name="title" value="Click cancel order"/>
+            <column name="action" value="Press cancel order button."/>
+            <column name="expected_result" value="Confirmation dialog is shown."/>
+        </insert>
+        <insert tableName="case_steps">
+            <column name="id" valueNumeric="2027"/>
+            <column name="case_id" valueNumeric="1009"/>
+            <column name="order" valueNumeric="3"/>
+            <column name="title" value="Confirm cancellation"/>
+            <column name="action" value="Confirm cancellation in dialog."/>
+            <column name="expected_result" value="Order status changes to cancelled."/>
+        </insert>
+
+        <rollback>
+            <delete tableName="case_steps">
+                <where>id between 2000 and 2027</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="003-seed-defects" author="edwin">
+        <insert tableName="defects">
+            <column name="id" valueNumeric="3000"/>
+            <column name="case_id" valueNumeric="1001"/>
+            <column name="title" value="Invalid credentials message is not localized"/>
+            <column name="description" value="Error text is always shown in English."/>
+            <column name="is_solved" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="defects">
+            <column name="id" valueNumeric="3001"/>
+            <column name="case_id" valueNumeric="1004"/>
+            <column name="title" value="Updated profile name is not visible until page refresh"/>
+            <column name="description" value="Backend saves changes, but UI is not refreshed automatically."/>
+            <column name="is_solved" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="defects">
+            <column name="id" valueNumeric="3002"/>
+            <column name="case_id" valueNumeric="1009"/>
+            <column name="title" value="Cancel order dialog can be closed without action"/>
+            <column name="description" value="Dialog closes on outside click and user action is lost."/>
+            <column name="is_solved" valueBoolean="true"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="defects">
+                <where>id between 3000 and 3002</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
