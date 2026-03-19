@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="008-seed-plans" author="edwin">
+        <!-- plans -->
+        <insert tableName="plans">
+            <column name="id" valueNumeric="4000"/>
+            <column name="name" value="Authentication smoke plan"/>
+            <column name="introduction" value="Basic smoke coverage for authentication features."/>
+            <column name="approach" value="Run core positive and negative authentication scenarios before release."/>
+            <column name="start_date" valueDate="2026-03-01"/>
+            <column name="end_date" valueDate="2026-03-05"/>
+        </insert>
+
+        <insert tableName="plans">
+            <column name="id" valueNumeric="4001"/>
+            <column name="name" value="Profile regression plan"/>
+            <column name="introduction" value="Regression coverage for user profile functionality."/>
+            <column name="approach" value="Validate profile viewing and editing scenarios including validation checks."/>
+            <column name="start_date" valueDate="2026-03-06"/>
+            <column name="end_date" valueDate="2026-03-10"/>
+        </insert>
+
+        <insert tableName="plans">
+            <column name="id" valueNumeric="4002"/>
+            <column name="name" value="Orders full regression plan"/>
+            <column name="introduction" value="Full regression plan for order management."/>
+            <column name="approach" value="Run happy-path and edge-case order scenarios for create, read and cancel flows."/>
+            <column name="start_date" valueDate="2026-03-11"/>
+            <column name="end_date" valueDate="2026-03-18"/>
+        </insert>
+
+        <!-- plan-case relations -->
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5000"/>
+            <column name="plan_id" valueNumeric="4000"/>
+            <column name="case_id" valueNumeric="1000"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5001"/>
+            <column name="plan_id" valueNumeric="4000"/>
+            <column name="case_id" valueNumeric="1001"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5002"/>
+            <column name="plan_id" valueNumeric="4000"/>
+            <column name="case_id" valueNumeric="1002"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5003"/>
+            <column name="plan_id" valueNumeric="4001"/>
+            <column name="case_id" valueNumeric="1003"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5004"/>
+            <column name="plan_id" valueNumeric="4001"/>
+            <column name="case_id" valueNumeric="1004"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5005"/>
+            <column name="plan_id" valueNumeric="4001"/>
+            <column name="case_id" valueNumeric="1005"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5006"/>
+            <column name="plan_id" valueNumeric="4002"/>
+            <column name="case_id" valueNumeric="1006"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5007"/>
+            <column name="plan_id" valueNumeric="4002"/>
+            <column name="case_id" valueNumeric="1007"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5008"/>
+            <column name="plan_id" valueNumeric="4002"/>
+            <column name="case_id" valueNumeric="1008"/>
+        </insert>
+
+        <insert tableName="plans_cases">
+            <column name="id" valueNumeric="5009"/>
+            <column name="plan_id" valueNumeric="4002"/>
+            <column name="case_id" valueNumeric="1009"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="plans_cases">
+                <where>id between 5000 and 5009</where>
+            </delete>
+            <delete tableName="plans">
+                <where>id between 4000 and 4002</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

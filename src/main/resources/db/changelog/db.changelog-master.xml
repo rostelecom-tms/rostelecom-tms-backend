@@ -12,5 +12,6 @@
     <include file="db/changelog/migrations/005-seed-roles.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/006-seed-run-statuses.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/007-seed-cases.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/008-seed-plans.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>
