@@ -89,36 +89,38 @@ public class CaseService {
 
     @Transactional
     public void update(int id, UpdateCaseCommand cmd) {
-        Case newCase = findOne(id);
+        Case existingCase = findOne(id);
         validateStepCommands(cmd.steps());
 
-        String nextTitle = cmd.title() != null ? cmd.title() : newCase.getTitle();
-        Integer nextGroupId = cmd.groupId() != null ? cmd.groupId() : newCase.getGroup().getId();
-        ensureCaseTitleIsUnique(nextTitle, nextGroupId, newCase);
+        String nextTitle = cmd.title() != null ? cmd.title() : existingCase.getTitle();
+        Integer nextGroupId = cmd.groupId() != null ? cmd.groupId() : existingCase.getGroup().getId();
+        ensureCaseTitleIsUnique(nextTitle, nextGroupId, existingCase);
 
         if (cmd.title() != null) {
-            newCase.setTitle(cmd.title());
+            existingCase.setTitle(cmd.title());
         }
         if (cmd.groupId() != null) {
             CaseGroup group = caseGroupService.findOne(cmd.groupId());
-            newCase.setGroup(group);
+            existingCase.setGroup(group);
         }
         if (cmd.description() != null) {
-            newCase.setDescription(cmd.description());
+            existingCase.setDescription(cmd.description());
         }
         if (cmd.preconditions() != null) {
-            newCase.setPreconditions(cmd.preconditions());
+            existingCase.setPreconditions(cmd.preconditions());
         }
         if (cmd.postconditions() != null) {
-            newCase.setPostconditions(cmd.postconditions());
+            existingCase.setPostconditions(cmd.postconditions());
         }
         if (cmd.steps() != null) {
-            newCase.getCaseSteps().clear();
-            List<CaseStep> steps = buildSteps(cmd.steps(), newCase);
-            newCase.getCaseSteps().addAll(steps);
+            existingCase.getCaseSteps().clear();
+            caseRepository.saveAndFlush(existingCase);
+
+            List<CaseStep> steps = buildSteps(cmd.steps(), existingCase);
+            existingCase.getCaseSteps().addAll(steps);
         }
 
-        caseRepository.save(newCase);
+        caseRepository.save(existingCase);
     }
 
     @Transactional
