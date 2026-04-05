@@ -2,10 +2,13 @@ package ru.rt.rostelecom_tms.controller.runs;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.dto.runs.RunBulkDto;
 import ru.rt.rostelecom_tms.dto.runs.RunCreateDto;
 import ru.rt.rostelecom_tms.dto.runs.RunResponseDto;
+import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.service.runs.RunService;
 import ru.rt.rostelecom_tms.util.mappers.RunMapper;
 
@@ -17,7 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RunController {
     private final RunService runService;
+    private final CurrentUserResolver currentUserResolver;
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public List<RunResponseDto> getAll(
             @RequestParam(required = false) Integer planId,
@@ -29,6 +34,7 @@ public class RunController {
             @RequestParam(required = false) Instant executedTo,
             @RequestParam(required = false) Integer groupId
     ) {
+            User caller = currentUserResolver.resolveOrThrow();
         return runService.findAllWithProbableFilters(
                 planId,
                 caseId,
@@ -37,18 +43,23 @@ public class RunController {
                 executedBy,
                 executedFrom,
                 executedTo,
-                groupId
+                groupId,
+                caller
         ).stream().map(RunMapper::toRunResponseDto).toList();
 
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public RunResponseDto create(@RequestBody @Valid RunCreateDto runCreateDto) {
-        return RunMapper.toRunResponseDto(runService.createRun(RunMapper.toCreateRunCommand(runCreateDto)));
+        User caller = currentUserResolver.resolveOrThrow();
+        return RunMapper.toRunResponseDto(runService.createRun(RunMapper.toCreateRunCommand(runCreateDto), caller));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/bulk")
     public List<RunResponseDto> createBulk(@RequestBody @Valid RunBulkDto runBulkCreateDto) {
-        return runService.createRunsBulk(RunMapper.toCreateRunCommandsFromBulk(runBulkCreateDto)).stream().map(RunMapper::toRunResponseDto).toList();
+        User caller = currentUserResolver.resolveOrThrow();
+        return runService.createRunsBulk(RunMapper.toCreateRunCommandsFromBulk(runBulkCreateDto), caller).stream().map(RunMapper::toRunResponseDto).toList();
     }
 }
