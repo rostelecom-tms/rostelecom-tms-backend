@@ -8,6 +8,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import ru.rt.rostelecom_tms.domain.cases.Case;
+import ru.rt.rostelecom_tms.domain.projects.Project;
 import ru.rt.rostelecom_tms.domain.runs.Run;
 import ru.rt.rostelecom_tms.domain.users.User;
 
@@ -49,6 +50,11 @@ public class Plan {
     @JoinColumn(name = "responsible_user_id")
     private User responsibleUser;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -63,4 +69,4 @@ public class Plan {
             inverseJoinColumns = @JoinColumn(name = "case_id")
     )
     private List<Case> cases = new ArrayList<>();
-}
+}

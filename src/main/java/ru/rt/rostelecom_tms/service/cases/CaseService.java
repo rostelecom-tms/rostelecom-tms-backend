@@ -8,10 +8,14 @@ import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
+import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
+import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
+import ru.rt.rostelecom_tms.repository.projects.ProjectMemberRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 import static ru.rt.rostelecom_tms.service.cases.CaseStepService.*;
 
@@ -22,6 +26,7 @@ public class CaseService {
 
     private final CaseRepository caseRepository;
     private final CaseGroupService caseGroupService;
+    private final ProjectMemberRepository projectMemberRepository;
 
     public record CreateCaseCommand(
             String title,
@@ -43,28 +48,39 @@ public class CaseService {
     ) {
     }
 
-    public List<Case> findAll() {
-        return caseRepository.findAllWithStepsAndGroup();
+    public List<Case> findAll(User caller) {
+        return caseRepository.findAllWithStepsAndGroup().stream()
+                .filter(testCase -> hasReadAccess(testCase, caller))
+                .toList();
     }
 
-    public List<Case> findAllByGroup(int groupId) {
-        caseGroupService.findOne(groupId);
-        return caseRepository.findAllByGroupIdWithSteps(groupId);
+    public List<Case> findAllByGroup(int groupId, User caller) {
+        caseGroupService.findOne(groupId, caller);
+        return caseRepository.findAllByGroupIdWithSteps(groupId).stream()
+                .filter(testCase -> hasReadAccess(testCase, caller))
+                .toList();
     }
 
-    public List<Case> findAllByPlan(int planId) {
-        return caseRepository.findAllByPlanId(planId);
+    public List<Case> findAllByPlan(int planId, User caller) {
+        return caseRepository.findAllByPlanId(planId).stream()
+                .filter(testCase -> hasReadAccess(testCase, caller))
+                .toList();
     }
 
-    public Case findOne(int id) {
-        return caseRepository.findByIdWithSteps(id)
+    public Case findOne(int id, User caller) {
+        Case testCase = caseRepository.findByIdWithSteps(id)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + id));
+        if (!hasReadAccess(testCase, caller)) {
+            throw new org.springframework.security.access.AccessDeniedException("No access to case");
+        }
+        return testCase;
     }
 
     @Transactional
-    public Case create(CreateCaseCommand cmd) {
+    public Case create(CreateCaseCommand cmd, User caller) {
         validateStepCommands(cmd.steps());
-        CaseGroup group = caseGroupService.findOne(cmd.groupId());
+        CaseGroup group = caseGroupService.findOne(cmd.groupId(), caller);
+        ensureWriteAccess(group, caller);
         ensureCaseTitleIsUnique(cmd.title(), group.getId(), null);
 
         Case newCase = new Case();
@@ -88,8 +104,9 @@ public class CaseService {
     }
 
     @Transactional
-    public void update(int id, UpdateCaseCommand cmd) {
-        Case existingCase = findOne(id);
+    public void update(int id, UpdateCaseCommand cmd, User caller) {
+        Case existingCase = findOne(id, caller);
+        ensureWriteAccess(existingCase.getGroup(), caller);
         validateStepCommands(cmd.steps());
 
         String nextTitle = cmd.title() != null ? cmd.title() : existingCase.getTitle();
@@ -100,7 +117,8 @@ public class CaseService {
             existingCase.setTitle(cmd.title());
         }
         if (cmd.groupId() != null) {
-            CaseGroup group = caseGroupService.findOne(cmd.groupId());
+            CaseGroup group = caseGroupService.findOne(cmd.groupId(), caller);
+            ensureWriteAccess(group, caller);
             existingCase.setGroup(group);
         }
         if (cmd.description() != null) {
@@ -124,10 +142,9 @@ public class CaseService {
     }
 
     @Transactional
-    public void delete(int id) {
-        if (!caseRepository.existsById(id)) {
-            throw new CaseNotFoundException("Couldn't find case with id: " + id);
-        }
+    public void delete(int id, User caller) {
+        Case testCase = findOne(id, caller);
+        ensureWriteAccess(testCase.getGroup(), caller);
         caseRepository.deleteById(id);
     }
 
@@ -148,6 +165,68 @@ public class CaseService {
         throw new CaseAlreadyExistsException(
                 "Case with title '" + title + "' already exists in group with id '" + groupId + "'"
         );
+    }
+
+    private boolean hasReadAccess(Case testCase, User caller) {
+        if (caller == null) {
+            return false;
+        }
+
+        String slug = caller.getRole().getSlug();
+        if (RoleSlugs.ADMIN.equals(slug)) {
+            return true;
+        }
+
+        CaseGroup group = testCase.getGroup();
+        if (group.getProject() == null) {
+            return RoleSlugs.TEAMLEAD.equals(slug);
+        }
+
+        Integer projectId = group.getProject().getId();
+        boolean isOwner = Objects.equals(group.getProject().getOwner().getId(), caller.getId());
+        boolean isMember = projectMemberRepository.existsByProjectIdAndUserId(projectId, caller.getId());
+
+        if (RoleSlugs.TEAMLEAD.equals(slug)) {
+            return isOwner || isMember;
+        }
+        return isMember;
+    }
+
+    private void ensureWriteAccess(CaseGroup group, User caller) {
+        if (caller == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Authentication required");
+        }
+
+        String slug = caller.getRole().getSlug();
+        if (RoleSlugs.ADMIN.equals(slug)) {
+            return;
+        }
+
+        if (!RoleSlugs.TEAMLEAD.equals(slug)) {
+            if (!RoleSlugs.USER.equals(slug)) {
+                throw new org.springframework.security.access.AccessDeniedException("No access to modify cases");
+            }
+            if (group.getProject() == null) {
+                throw new org.springframework.security.access.AccessDeniedException("User can only modify cases inside projects");
+            }
+            Integer projectId = group.getProject().getId();
+            boolean isMember = projectMemberRepository.existsByProjectIdAndUserId(projectId, caller.getId());
+            if (!isMember) {
+                throw new org.springframework.security.access.AccessDeniedException("User can only modify entrusted project cases");
+            }
+            return;
+        }
+
+        if (group.getProject() == null) {
+            return;
+        }
+
+        Integer projectId = group.getProject().getId();
+        boolean isOwner = Objects.equals(group.getProject().getOwner().getId(), caller.getId());
+        boolean isMember = projectMemberRepository.existsByProjectIdAndUserId(projectId, caller.getId());
+        if (!isOwner && !isMember) {
+            throw new org.springframework.security.access.AccessDeniedException("Teamlead can only modify cases in owned or entrusted projects");
+        }
     }
 
 

@@ -17,7 +17,8 @@ public class PlanMapper {
                 dto.approach(),
                 dto.startDate(),
                 dto.endDate(),
-                dto.responsibleUserId()
+                dto.responsibleUserId(),
+                dto.projectId()
         );
     }
 
@@ -28,7 +29,8 @@ public class PlanMapper {
                 dto.approach(),
                 dto.startDate(),
                 dto.endDate(),
-                dto.responsibleUserId()
+                dto.responsibleUserId(),
+                dto.projectId()
         );
     }
 
@@ -53,6 +55,7 @@ public class PlanMapper {
                 plan.getApproach(),
                 plan.getStartDate(),
                 plan.getEndDate(),
+                plan.getProject() == null ? null : plan.getProject().getId(),
                 responsibleUser,
                 plan.getCreatedAt(),
                 cases

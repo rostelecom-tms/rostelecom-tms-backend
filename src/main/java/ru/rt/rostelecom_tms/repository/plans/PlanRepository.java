@@ -25,5 +25,9 @@ public interface PlanRepository extends JpaRepository<Plan, Integer> {
     @Query("SELECT p FROM Plan p LEFT JOIN FETCH p.cases LEFT JOIN FETCH p.responsibleUser WHERE p.id = :id")
     Optional<Plan> findByIdWithCasesAndUser(@Param("id") Integer id);
 
+    @Query("SELECT p FROM Plan p LEFT JOIN FETCH p.responsibleUser WHERE p.responsibleUser.id = :userId")
+    @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
+    List<Plan> findAllByResponsibleUserId(@Param("userId") Integer userId);
+
     boolean existsByName(String name);
 }

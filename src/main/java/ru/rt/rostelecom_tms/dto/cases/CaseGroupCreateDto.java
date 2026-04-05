@@ -12,6 +12,7 @@ public record CaseGroupCreateDto(
         @NotBlank @Size(min = 1, max = 255)
         @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$",
                 message = "slug must contain only lowercase letters, digits and hyphens")
-        String slug
+        String slug,
+        Integer projectId
 ) {
 }

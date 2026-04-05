@@ -15,8 +15,17 @@ import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAccessDeniedException;
+import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanCreationNotAllowedException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectNotFoundException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAccessDeniedException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberNotFoundException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.runs.exceptions.RunStatusNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
+import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotAllowedException;
+import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotFoundException;
 
 import java.util.stream.Collectors;
 
@@ -24,7 +33,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler({RunStatusNotFoundException.class, CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, PlanNotFoundException.class})
+        @ExceptionHandler({RunStatusNotFoundException.class, CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, UserRoleNotFoundException.class, PlanNotFoundException.class, ProjectNotFoundException.class, ProjectMemberNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
@@ -38,7 +47,9 @@ public class GlobalExceptionHandler {
             CaseGroupAlreadyExistsException.class,
             CaseGroupNotCreatedException.class,
             CaseGroupNotDeletableException.class,
-            PlanAlreadyExistsException.class
+            PlanAlreadyExistsException.class,
+            ProjectAlreadyExistsException.class,
+            ProjectMemberAlreadyExistsException.class
     })
     public ResponseEntity<ErrorResponse> handleCaseConflict(RuntimeException e) {
         return new ResponseEntity<>(
@@ -55,10 +66,26 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    @ExceptionHandler(UserRoleNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleRoleNotAllowed(UserRoleNotAllowedException e) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class, PlanAccessDeniedException.class, ProjectAccessDeniedException.class})
     public ResponseEntity<ErrorResponse> handleAccessDenied(Exception e) {
         return new ResponseEntity<>(
-                new ErrorResponse("access denied", System.currentTimeMillis()),
+                new ErrorResponse(e.getMessage() != null ? e.getMessage() : "access denied", System.currentTimeMillis()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(PlanCreationNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handlePlanCreationNotAllowed(PlanCreationNotAllowedException e) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
                 HttpStatus.FORBIDDEN
         );
     }

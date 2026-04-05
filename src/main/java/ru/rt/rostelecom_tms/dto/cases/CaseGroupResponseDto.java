@@ -6,6 +6,7 @@ package ru.rt.rostelecom_tms.dto.cases;
 public record CaseGroupResponseDto(
         Integer id,
         String name,
-        String slug
+        String slug,
+        Integer projectId
 ) {
 }

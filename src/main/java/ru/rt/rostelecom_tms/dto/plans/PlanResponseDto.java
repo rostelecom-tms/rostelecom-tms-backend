@@ -16,6 +16,7 @@ public record PlanResponseDto(
         String approach,
         LocalDate startDate,
         LocalDate endDate,
+        Integer projectId,
         PlanResponsibleUserDto responsibleUser,
         Instant createdAt,
         List<CaseSimpleResponseDto> cases

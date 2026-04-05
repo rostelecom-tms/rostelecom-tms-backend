@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import ru.rt.rostelecom_tms.domain.projects.Project;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -25,7 +28,11 @@ public class CaseGroup {
     @Column(name = "slug", nullable = false)
     private String slug;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
     @OneToMany(mappedBy = "group")
     private Set<Case> cases = new LinkedHashSet<>();
-
-}
+}

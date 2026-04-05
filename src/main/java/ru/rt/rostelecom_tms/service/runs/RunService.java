@@ -10,8 +10,10 @@ import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.runs.Run;
 import ru.rt.rostelecom_tms.domain.runs.RunStatus;
 import ru.rt.rostelecom_tms.domain.runs.exceptions.RunStatusNotFoundException;
+import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
+import ru.rt.rostelecom_tms.repository.projects.ProjectMemberRepository;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 import ru.rt.rostelecom_tms.repository.plans.PlanRepository;
 import ru.rt.rostelecom_tms.repository.runs.RunRepository;
@@ -20,6 +22,7 @@ import ru.rt.rostelecom_tms.repository.users.UserRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -31,6 +34,7 @@ public class RunService {
     private final PlanRepository planRepository;
     private final CaseRepository caseRepository;
     private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     public record CreateRunCommand(
         Integer planId,
@@ -56,7 +60,8 @@ public class RunService {
             Integer executedBy,
             Instant executedFrom,
             Instant executedTo,
-            Integer groupId
+            Integer groupId,
+            User caller
     ) {
         List<Run> runsFromServiceResponse;
 
@@ -78,14 +83,17 @@ public class RunService {
             runsFromServiceResponse = runRepository.findAll();
         }
 
-        return runsFromServiceResponse;
+        return runsFromServiceResponse.stream()
+                .filter(run -> hasProjectReadAccess(run.getPlan(), caller))
+                .toList();
     }
 
 
 
     @Transactional
-    public Run createRun(CreateRunCommand cmd) {
+    public Run createRun(CreateRunCommand cmd, User caller) {
         Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
+        ensureProjectWriteAccess(plan, caller);
 
         Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
@@ -105,13 +113,14 @@ public class RunService {
     }
 
     @Transactional
-    public List<Run> createRunsBulk(List<CreateRunCommandFromBulk> commands) {
+    public List<Run> createRunsBulk(List<CreateRunCommandFromBulk> commands, User caller) {
 
         List<Run> runs = commands.stream().map(
                 cmd -> {
                     Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
                     Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
+                    ensureProjectWriteAccess(plan, caller);
 
                     User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
 
@@ -130,5 +139,36 @@ public class RunService {
                 ).toList();
 
         return runs.stream().map(runRepository::save).toList();
+    }
+
+    private boolean hasProjectReadAccess(Plan plan, User caller) {
+        if (caller == null) {
+            return false;
+        }
+
+        String role = caller.getRole().getSlug();
+        if (RoleSlugs.ADMIN.equals(role)) {
+            return true;
+        }
+
+        if (plan.getProject() == null) {
+            return RoleSlugs.TEAMLEAD.equals(role);
+        }
+
+        Integer projectId = plan.getProject().getId();
+        boolean isOwner = Objects.equals(plan.getProject().getOwner().getId(), caller.getId());
+        boolean isMember = projectMemberRepository.existsByProjectIdAndUserId(projectId, caller.getId());
+
+        if (RoleSlugs.TEAMLEAD.equals(role)) {
+            return isOwner || isMember;
+        }
+
+        return isMember;
+    }
+
+    private void ensureProjectWriteAccess(Plan plan, User caller) {
+        if (!hasProjectReadAccess(plan, caller)) {
+            throw new org.springframework.security.access.AccessDeniedException("No access to project's runs");
+        }
     }
 }
