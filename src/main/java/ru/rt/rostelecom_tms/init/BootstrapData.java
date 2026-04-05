@@ -39,6 +39,7 @@ public class BootstrapData implements ApplicationRunner {
     public void run(@NonNull ApplicationArguments args) {
         ensureRole(RoleSlugs.USER, "user");
         ensureRole(RoleSlugs.ADMIN, "admin");
+        ensureRole(RoleSlugs.TEAMLEAD, "teamlead");
 
         ensureAdminUser();
     }

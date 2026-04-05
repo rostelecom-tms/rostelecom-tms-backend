@@ -7,6 +7,7 @@ import ru.rt.rostelecom_tms.domain.users.User;
  * DTO for {@link User}
  */
 public record UserUpdateDto(
-        @NotNull Integer roleId
+        @NotNull Integer roleId,
+        Boolean canCreatePlans
 ) {
 }
