@@ -49,20 +49,14 @@ public class UserService {
     public void update(int id, UpdateUserCommand updatedUser) {
         User user = findOne(id);
 
-        String currentSlug = user.getRole().getSlug();
         if (updatedUser.roleId() != null) {
             UserRole nextRole = userRoleService.findOne(updatedUser.roleId());
-            String nextSlug = nextRole.getSlug();
-            if (RoleSlugs.TEAMLEAD.equals(currentSlug)
-                    && !RoleSlugs.TEAMLEAD.equals(nextSlug)
+            if (RoleSlugs.TEAMLEAD.equals(user.getRole().getSlug())
+                    && !RoleSlugs.TEAMLEAD.equals(nextRole.getSlug())
                     && userRepository.countByRole_Slug(RoleSlugs.TEAMLEAD) <= 1) {
                 throw new UserRoleNotAllowedException("At least one teamlead must remain in the system");
             }
-        }
-
-        if (updatedUser.roleId() != null) {
-            UserRole role = userRoleService.findOne(updatedUser.roleId());
-            user.setRole(role);
+            user.setRole(nextRole);
         }
         if (updatedUser.canCreatePlans() != null) {
             user.setCanCreatePlans(updatedUser.canCreatePlans());

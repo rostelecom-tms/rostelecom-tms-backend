@@ -11,17 +11,23 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.rt.rostelecom_tms.domain.cases.exceptions.*;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
-import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
-import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotDeletableException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotFoundException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseStepNotFoundException;
+import ru.rt.rostelecom_tms.domain.cases.exceptions.DefectNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAccessDeniedException;
+import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanCreationNotAllowedException;
-import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectNotFoundException;
-import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAccessDeniedException;
-import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberNotFoundException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberNotFoundException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectNotFoundException;
 import ru.rt.rostelecom_tms.domain.runs.exceptions.RunStatusNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotAllowedException;
@@ -33,7 +39,18 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        @ExceptionHandler({RunStatusNotFoundException.class, CaseStepNotFoundException.class, CaseNotFoundException.class, CaseGroupNotFoundException.class, UserNotFoundException.class, UserRoleNotFoundException.class, PlanNotFoundException.class, ProjectNotFoundException.class, ProjectMemberNotFoundException.class})
+    @ExceptionHandler({
+            RunStatusNotFoundException.class,
+            CaseStepNotFoundException.class,
+            CaseNotFoundException.class,
+            CaseGroupNotFoundException.class,
+            DefectNotFoundException.class,
+            UserNotFoundException.class,
+            UserRoleNotFoundException.class,
+            PlanNotFoundException.class,
+            ProjectNotFoundException.class,
+            ProjectMemberNotFoundException.class
+    })
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
@@ -45,13 +62,12 @@ public class GlobalExceptionHandler {
             CaseAlreadyExistsException.class,
             CaseAlreadyInPlanException.class,
             CaseGroupAlreadyExistsException.class,
-            CaseGroupNotCreatedException.class,
             CaseGroupNotDeletableException.class,
             PlanAlreadyExistsException.class,
             ProjectAlreadyExistsException.class,
             ProjectMemberAlreadyExistsException.class
     })
-    public ResponseEntity<ErrorResponse> handleCaseConflict(RuntimeException e) {
+    public ResponseEntity<ErrorResponse> handleConflict(RuntimeException e) {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
                 HttpStatus.CONFLICT
