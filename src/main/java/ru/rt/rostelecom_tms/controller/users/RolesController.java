@@ -28,6 +28,8 @@ public class RolesController {
 
     private final UserRoleService roleService;
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public List<UserRoleResponseDto> getRoles() {
         return roleService.findAll().stream().map(r -> new UserRoleResponseDto(

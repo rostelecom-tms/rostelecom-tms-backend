@@ -12,5 +12,6 @@ public record UserResponseDto(
         String email,
         String username,
         Instant createdAt,
+        boolean canCreatePlans,
         UserRoleResponseDto role) {
 }

@@ -29,6 +29,8 @@ public class UserController {
 
     private final UserService userService;
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public List<UserResponseDto> getUsers() {
         return userService.findAll().stream().map(UserMapper::toDto).toList();
@@ -41,7 +43,11 @@ public class UserController {
     public void createUser(@RequestBody @Valid UserCreateDto userDto) {
         userService.register(
                 new UserService.RegisterUserCommand(
-                        userDto.email(), userDto.username(), userDto.password()
+                        userDto.email(),
+                        userDto.username(),
+                        userDto.password(),
+                        userDto.role(),
+                        Boolean.TRUE.equals(userDto.canCreatePlans())
                 )
         );
     }
@@ -51,7 +57,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{id}")
     public void updateUser(@PathVariable int id, @RequestBody @Valid UserUpdateDto userDto) {
-        userService.update(id, new UserService.UpdateUserCommand(userDto.roleId()));
+        userService.update(id, new UserService.UpdateUserCommand(userDto.roleId(), userDto.canCreatePlans()));
     }
 
     @SecurityRequirement(name = "bearerAuth")

@@ -1,7 +1,6 @@
 package ru.rt.rostelecom_tms.service.users;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
@@ -31,17 +30,17 @@ public class UserRoleService {
 
     public UserRole findOne(int id) {
         Optional<UserRole> foundRole = userRoleRepository.findById(id);
-        return foundRole.orElseThrow(UserRoleNotFoundException::new);
+        return foundRole.orElseThrow(() -> new UserRoleNotFoundException("Could not find role with id: " + id));
     }
 
     public UserRole findOneBySlug(String slug) {
         Optional<UserRole> foundRole = userRoleRepository.findBySlug(slug);
-        return foundRole.orElseThrow(UserRoleNotFoundException::new);
+        return foundRole.orElseThrow(() -> new UserRoleNotFoundException("Could not find role with slug: " + slug));
     }
 
     @Transactional
     public void save(CreateRoleCommand c) {
-        RoleSlugs.checkIfSlugIsAllowed(c.slug());
+        RoleSlugs.assertNotReserved(c.slug());
         UserRole role = new UserRole();
         role.setName(c.name());
         role.setSlug(c.slug());
@@ -55,7 +54,7 @@ public class UserRoleService {
             role.setName(c.name());
         }
         if (c.slug() != null) {
-            RoleSlugs.checkIfSlugIsAllowed(c.slug());
+            RoleSlugs.assertNotReserved(c.slug());
             role.setSlug(c.slug());
         }
 

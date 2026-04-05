@@ -14,6 +14,7 @@ public class UserMapper {
                 user.getEmail(),
                 user.getUsername(),
                 user.getCreatedAt(),
+                user.isCanCreatePlans(),
                 new UserRoleResponseDto(
                         user.getRole().getId(),
                         user.getRole().getName(),
