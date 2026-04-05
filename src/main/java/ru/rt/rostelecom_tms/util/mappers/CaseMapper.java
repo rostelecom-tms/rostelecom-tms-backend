@@ -85,7 +85,8 @@ public class CaseMapper {
         return new CaseGroupResponseDto(
                 group.getId(),
                 group.getName(),
-                group.getSlug()
+                group.getSlug(),
+                group.getProject() == null ? null : group.getProject().getId()
         );
     }
 

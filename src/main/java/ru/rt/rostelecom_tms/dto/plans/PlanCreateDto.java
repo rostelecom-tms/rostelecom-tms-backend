@@ -14,5 +14,6 @@ public record PlanCreateDto(
         String approach,
         LocalDate startDate,
         LocalDate endDate,
-        Integer responsibleUserId
+        Integer responsibleUserId,
+        Integer projectId
 ) {}
