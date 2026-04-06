@@ -34,7 +34,7 @@ public class ProjectService {
 
     public List<Project> findAll(User caller) {
         if (caller == null) {
-            return projectRepository.findAllWithMembers();
+            throw new ProjectAccessDeniedException("Authentication required");
         }
 
         return switch (caller.getRole().getSlug()) {
@@ -133,8 +133,9 @@ public class ProjectService {
     }
 
     private void checkCanCreate(User caller) {
-        if (caller == null)
-            return;
+        if (caller == null) {
+            throw new ProjectAccessDeniedException("Authentication required");
+        }
 
         String slug = caller.getRole().getSlug();
 
@@ -154,8 +155,9 @@ public class ProjectService {
     }
 
     private void checkReadAccess(Project project, User caller) {
-        if (caller == null)
-            return;
+        if (caller == null) {
+            throw new ProjectAccessDeniedException("Authentication required");
+        }
 
         String slug = caller.getRole().getSlug();
 
@@ -178,8 +180,9 @@ public class ProjectService {
     }
 
     private void checkWriteAccess(Project project, User caller) {
-        if (caller == null)
-            return;
+        if (caller == null) {
+            throw new ProjectAccessDeniedException("Authentication required");
+        }
         String slug = caller.getRole().getSlug();
         if (RoleSlugs.ADMIN.equals(slug))
             return;

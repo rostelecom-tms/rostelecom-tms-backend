@@ -97,7 +97,7 @@ public class RunService {
 
         Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
-        User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
+        User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy()));
 
         RunStatus runStatus = runStatusRepository.findById(cmd.statusId()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with id: " + cmd.statusId()));
 
@@ -122,7 +122,7 @@ public class RunService {
                     Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
                     ensureProjectWriteAccess(plan, caller);
 
-                    User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy));
+                    User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy()));
 
                     RunStatus runStatus = runStatusRepository.findBySlug(cmd.statusSlug()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with slug: " + cmd.statusSlug()));
 
@@ -152,7 +152,11 @@ public class RunService {
         }
 
         if (plan.getProject() == null) {
-            return RoleSlugs.TEAMLEAD.equals(role);
+            if (!RoleSlugs.TEAMLEAD.equals(role)) {
+                return false;
+            }
+            User responsible = plan.getResponsibleUser();
+            return responsible != null && Objects.equals(responsible.getId(), caller.getId());
         }
 
         Integer projectId = plan.getProject().getId();

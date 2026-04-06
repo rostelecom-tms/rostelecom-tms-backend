@@ -12,6 +12,7 @@ import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanCreationNotAllowedException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.projects.Project;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.repository.projects.ProjectMemberRepository;
@@ -21,9 +22,11 @@ import ru.rt.rostelecom_tms.service.cases.CaseService;
 import ru.rt.rostelecom_tms.service.users.UserService;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -57,10 +60,39 @@ public class PlanService {
     ) {}
 
     public List<Plan> findAll(User caller) {
+        if (caller == null) {
+            return List.of();
+        }
+
         List<Plan> plans = planRepository.findAllWithUser();
-        List<Plan> visible = plans.stream()
-                .filter(plan -> hasReadAccess(plan, caller))
-                .toList();
+        if (plans.isEmpty()) {
+            return plans;
+        }
+
+        String slug = caller.getRole().getSlug();
+        List<Plan> visible;
+
+        if (RoleSlugs.ADMIN.equals(slug)) {
+            visible = plans;
+        } else {
+            Set<Integer> accessibleProjectIds = RoleSlugs.TEAMLEAD.equals(slug)
+                    ? projectRepository.findAllOwnedOrMember(caller.getId()).stream().map(Project::getId).collect(java.util.stream.Collectors.toSet())
+                    : new HashSet<>(projectRepository.findAllByMemberUserId(caller.getId()).stream().map(Project::getId).toList());
+
+            visible = plans.stream()
+                    .filter(plan -> {
+                        if (plan.getProject() != null) {
+                            return accessibleProjectIds.contains(plan.getProject().getId());
+                        }
+                        if (!RoleSlugs.TEAMLEAD.equals(slug)) {
+                            return false;
+                        }
+                        User responsible = plan.getResponsibleUser();
+                        return responsible != null && Objects.equals(responsible.getId(), caller.getId());
+                    })
+                    .toList();
+        }
+
         if (visible.isEmpty()) return visible;
         return planRepository.fetchCasesForPlans(visible);
     }
@@ -92,7 +124,7 @@ public class PlanService {
 
         if (cmd.projectId() != null) {
             Project project = projectRepository.findByIdWithMembers(cmd.projectId())
-                    .orElseThrow(() -> new PlanNotFoundException("Couldn't find project with id: " + cmd.projectId()));
+                    .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             plan.setProject(project);
         } else if (caller != null && !RoleSlugs.ADMIN.equals(caller.getRole().getSlug())) {
@@ -131,7 +163,7 @@ public class PlanService {
 
         if (cmd.projectId() != null) {
             Project project = projectRepository.findByIdWithMembers(cmd.projectId())
-                .orElseThrow(() -> new PlanNotFoundException("Couldn't find project with id: " + cmd.projectId()));
+                .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             plan.setProject(project);
         }
@@ -209,7 +241,9 @@ public class PlanService {
     }
 
     private void checkWriteAccess(Plan plan, User caller) {
-        if (caller == null) return;
+        if (caller == null) {
+            throw new PlanAccessDeniedException("Authentication required");
+        }
         String slug = caller.getRole().getSlug();
         if (RoleSlugs.ADMIN.equals(slug)) return;
 
@@ -242,7 +276,7 @@ public class PlanService {
             }
             return;
         }
-            throw new PlanAccessDeniedException("User cannot modify legacy plans outside projects");
+        throw new PlanAccessDeniedException("User cannot modify legacy plans outside projects");
     }
 
     private void validateDates(LocalDate startDate, LocalDate endDate) {

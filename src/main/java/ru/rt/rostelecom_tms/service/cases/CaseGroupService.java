@@ -8,6 +8,7 @@ import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupAlreadyExistsExcept
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotDeletableException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseGroupNotFoundException;
 import ru.rt.rostelecom_tms.domain.projects.Project;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
@@ -65,10 +66,10 @@ public class CaseGroupService {
 
         if (cmd.projectId() != null) {
             Project project = projectRepository.findByIdWithMembers(cmd.projectId())
-                    .orElseThrow(CaseGroupNotFoundException::new);
+                    .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             group.setProject(project);
-        } else if (caller != null && !RoleSlugs.ADMIN.equals(caller.getRole().getSlug())) {
+        } else if (!RoleSlugs.ADMIN.equals(caller.getRole().getSlug())) {
             throw new org.springframework.security.access.AccessDeniedException("Case group must be created inside a project");
         }
 
@@ -100,7 +101,7 @@ public class CaseGroupService {
 
         if (cmd.projectId() != null) {
             Project project = projectRepository.findByIdWithMembers(cmd.projectId())
-                    .orElseThrow(CaseGroupNotFoundException::new);
+                    .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             group.setProject(project);
         }
