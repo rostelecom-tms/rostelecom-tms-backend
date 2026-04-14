@@ -8,6 +8,7 @@ import java.time.Instant;
 public record DefectResponseDto(
         Integer id,
         Integer caseId,
+        String caseTitle,
         String title,
         String description,
         Boolean isSolved,

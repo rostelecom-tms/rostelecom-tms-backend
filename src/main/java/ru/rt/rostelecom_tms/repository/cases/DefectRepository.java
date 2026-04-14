@@ -11,4 +11,6 @@ public interface DefectRepository extends JpaRepository<Defect, Integer> {
 
     List<Defect> findByCaseFieldIdOrderByCreatedAtDesc(Integer caseId);
 
+    List<Defect> findAllByOrderByCreatedAtDesc();
+
 }
