@@ -1,6 +1,7 @@
 package ru.rt.rostelecom_tms.repository.runs;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import ru.rt.rostelecom_tms.domain.runs.Run;
 
 import java.time.Instant;
@@ -8,17 +9,27 @@ import java.util.List;
 
 public interface RunRepository extends JpaRepository<Run, Integer> {
 
-    List<Run> findByPlanId(Integer planId);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByPlanIdOrderByExecutedAtDesc(Integer planId);
 
-    List<Run> findByCaseFieldId(Integer caseId);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByCaseFieldIdOrderByExecutedAtDesc(Integer caseId);
 
-    List<Run> findByStatusId(Integer statusId);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByStatusIdOrderByExecutedAtDesc(Integer statusId);
 
-    List<Run> findByStatusSlug(String statusId);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByStatusSlugOrderByExecutedAtDesc(String statusId);
 
-    List<Run> findByExecutedById(Integer userId);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByExecutedByIdOrderByExecutedAtDesc(Integer userId);
 
-    List<Run> findByExecutedAtBetween(Instant executedAtAfter, Instant executedAtBefore);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByExecutedAtBetweenOrderByExecutedAtDesc(Instant executedAtAfter, Instant executedAtBefore);
 
-    List<Run> findByCaseFieldGroupId(Integer groupId);
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findByCaseFieldGroupIdOrderByExecutedAtDesc(Integer groupId);
+
+    @EntityGraph(attributePaths = {"caseField", "plan", "status", "executedBy"})
+    List<Run> findAllByOrderByExecutedAtDesc();
 }

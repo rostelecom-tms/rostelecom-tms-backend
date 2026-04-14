@@ -1,6 +1,7 @@
 package ru.rt.rostelecom_tms.util.mappers;
 
 import ru.rt.rostelecom_tms.domain.runs.Run;
+import ru.rt.rostelecom_tms.dto.runs.RunStatusResponseDto;
 import ru.rt.rostelecom_tms.dto.runs.RunBulkDto;
 import ru.rt.rostelecom_tms.dto.runs.RunCreateDto;
 import ru.rt.rostelecom_tms.dto.runs.RunResponseDto;
@@ -14,10 +15,15 @@ public class RunMapper {
         return new RunResponseDto(
                 run.getId(),
                 run.getCaseField().getId(),
+                run.getCaseField().getTitle(),
                 run.getPlan().getId(),
+                run.getPlan().getName(),
+                run.getStatus().getId(),
                 run.getStatus().getName(),
                 run.getStatus().getSlug(),
-                run.getExecutedBy().getId(),
+                run.getExecutedBy() == null ? null : run.getExecutedBy().getId(),
+                run.getExecutedBy() == null ? null : run.getExecutedBy().getUsername(),
+                run.getExecutedBy() == null ? null : run.getExecutedBy().getEmail(),
                 run.getExecutedAt()
         );
     }
@@ -45,5 +51,13 @@ public class RunMapper {
                         resultDto.executedAt()
                 ))
                 .toList();
+    }
+
+    public static RunStatusResponseDto toRunStatusResponseDto(RunService.RunStatusView status) {
+        return new RunStatusResponseDto(
+                status.id(),
+                status.name(),
+                status.slug()
+        );
     }
 }
