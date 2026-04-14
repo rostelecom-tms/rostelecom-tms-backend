@@ -78,7 +78,7 @@ public class CaseMapper {
     }
 
     public static CaseSimpleResponseDto toSimpleDto(Case c) {
-        return new CaseSimpleResponseDto(c.getId(), c.getTitle());
+        return new CaseSimpleResponseDto(c.getId(), c.getTitle(), c.getGroup().getId());
     }
 
     public static CaseGroupResponseDto toDto(CaseGroup group) {
@@ -86,7 +86,8 @@ public class CaseMapper {
                 group.getId(),
                 group.getName(),
                 group.getSlug(),
-                group.getProject() == null ? null : group.getProject().getId()
+                group.getProject() == null ? null : group.getProject().getId(),
+                group.getParent() == null ? null : group.getParent().getId()
         );
     }
 

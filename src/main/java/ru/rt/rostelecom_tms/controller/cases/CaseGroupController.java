@@ -49,7 +49,7 @@ public class CaseGroupController {
     public CaseGroupResponseDto create(@RequestBody @Valid CaseGroupCreateDto dto) {
         User caller = currentUserResolver.resolveOrThrow();
         return CaseMapper.toDto(
-            caseGroupService.create(new CaseGroupService.CreateGroupCommand(dto.name(), dto.slug(), dto.projectId()), caller)
+            caseGroupService.create(new CaseGroupService.CreateGroupCommand(dto.name(), dto.slug(), dto.projectId(), dto.parentId()), caller)
         );
     }
 
@@ -59,7 +59,7 @@ public class CaseGroupController {
     @PatchMapping("/{id}")
     public void update(@PathVariable int id, @RequestBody @Valid CaseGroupUpdateDto dto) {
         User caller = currentUserResolver.resolveOrThrow();
-        caseGroupService.update(id, new CaseGroupService.UpdateGroupCommand(dto.name(), dto.slug(), dto.projectId()), caller);
+        caseGroupService.update(id, new CaseGroupService.UpdateGroupCommand(dto.name(), dto.slug(), dto.projectId(), dto.parentId()), caller);
     }
 
     @SecurityRequirement(name = "bearerAuth")

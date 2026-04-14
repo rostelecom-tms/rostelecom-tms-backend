@@ -18,6 +18,9 @@ public interface CaseRepository extends JpaRepository<Case, Integer> {
     List<Case> findAllByGroupId(Integer groupId);
 
     @EntityGraph(attributePaths = {"caseSteps", "group"})
+    List<Case> findDistinctByGroupIdIn(List<Integer> groupIds);
+
+    @EntityGraph(attributePaths = {"caseSteps", "group"})
     Optional<Case> findOneById(Integer id);
 
     @EntityGraph(attributePaths = "group")
