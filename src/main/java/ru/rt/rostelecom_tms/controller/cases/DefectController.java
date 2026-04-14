@@ -21,6 +21,8 @@ public class DefectController {
 
     private final DefectService defectService;
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public List<DefectResponseDto> getAll(
             @RequestParam(required = false) Integer caseId

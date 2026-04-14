@@ -35,7 +35,7 @@ public class DefectService {
 
     public List<Defect> findAllByCaseId(Integer caseId) {
         if (caseId == null) {
-            return defectRepository.findAll();
+            return defectRepository.findAllByOrderByCreatedAtDesc();
         }
 
         return defectRepository.findByCaseFieldIdOrderByCreatedAtDesc(caseId);

@@ -140,6 +140,7 @@ public class CaseMapper {
         return new DefectResponseDto(
                 defect.getId(),
                 defect.getCaseField().getId(),
+                defect.getCaseField().getTitle(),
                 defect.getTitle(),
                 defect.getDescription(),
                 defect.getIsSolved(),
