@@ -1,8 +1,11 @@
 package ru.rt.rostelecom_tms.service.cases;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
@@ -116,6 +119,11 @@ public class CaseService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public Case create(CreateCaseCommand cmd, User caller) {
         validateStepCommands(cmd.steps());
         CaseGroup group = caseGroupService.findOne(cmd.groupId(), caller);
@@ -144,6 +152,11 @@ public class CaseService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void update(int id, UpdateCaseCommand cmd, User caller) {
         Case existingCase = findOne(id, caller);
         ensureWriteAccess(existingCase.getGroup(), caller);
@@ -186,6 +199,11 @@ public class CaseService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void delete(int id, User caller) {
         Case testCase = findOne(id, caller);
         ensureWriteAccess(testCase.getGroup(), caller);

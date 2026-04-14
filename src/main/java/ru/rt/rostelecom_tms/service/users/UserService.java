@@ -1,9 +1,12 @@
 package ru.rt.rostelecom_tms.service.users;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.domain.users.UserRole;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
@@ -46,6 +49,13 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void update(int id, UpdateUserCommand updatedUser) {
         User user = findOne(id);
 
@@ -65,6 +75,13 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void delete(int id) {
         User user = findOne(id);
         if (RoleSlugs.TEAMLEAD.equals(user.getRole().getSlug())
@@ -75,6 +92,13 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void register(RegisterUserCommand r) {
         String slug = r.roleSlug() != null ? r.roleSlug() : RoleSlugs.USER;
         if (!slug.equals(RoleSlugs.USER) && !slug.equals(RoleSlugs.TEAMLEAD)) {

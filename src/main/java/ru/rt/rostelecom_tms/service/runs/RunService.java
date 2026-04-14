@@ -1,8 +1,11 @@
 package ru.rt.rostelecom_tms.service.runs;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.plans.Plan;
@@ -91,6 +94,10 @@ public class RunService {
 
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public Run createRun(CreateRunCommand cmd, User caller) {
         Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
         ensureProjectWriteAccess(plan, caller);
@@ -105,6 +112,10 @@ public class RunService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public List<Run> createRunsBulk(List<CreateRunCommandFromBulk> commands, User caller) {
         List<Run> runs = commands.stream().map(
                 cmd -> {
@@ -125,6 +136,10 @@ public class RunService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public List<Run> createRunsBulkFromIntegration(List<CreateRunCommandFromBulk> commands) {
         List<Run> runs = commands.stream()
                 .map(cmd -> {

@@ -1,8 +1,10 @@
 package ru.rt.rostelecom_tms.service.dashboard;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.runs.Run;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.dto.dashboard.DashboardRecentPlanDto;
@@ -29,6 +31,7 @@ public class DashboardService {
     private final PlanService planService;
     private final RunService runService;
 
+    @Cacheable(value = CacheNames.DASHBOARD, key = "#caller.id")
     public DashboardResponseDto buildDashboard(User caller) {
         List<Run> runs = runService.findAllWithProbableFilters(
                 null,

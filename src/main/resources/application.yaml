@@ -16,6 +16,15 @@ spring:
     properties:
       hibernate:
         show_sql: true
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      repositories:
+        enabled: false
 
 server:
   servlet:
@@ -24,3 +33,5 @@ server:
 app:
   cors:
     allowed-origin: ${APP_URL}
+  runs:
+    ingestion-token: ${RUNS_INGESTION_TOKEN:}

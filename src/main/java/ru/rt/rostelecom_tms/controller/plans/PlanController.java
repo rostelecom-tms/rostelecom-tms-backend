@@ -3,8 +3,10 @@ package ru.rt.rostelecom_tms.controller.plans;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.dto.common.PageResponseDto;
 import ru.rt.rostelecom_tms.dto.plans.PlanCreateDto;
 import ru.rt.rostelecom_tms.dto.plans.PlanResponseDto;
@@ -38,7 +41,12 @@ public class PlanController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
     @GetMapping
+    @Cacheable(
+            value = CacheNames.PLANS_PAGE,
+            key = "T(java.lang.String).format('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s', #authentication?.name, #name, #responsibleUserId, #projectId, #startDateFrom, #startDateTo, #endDateFrom, #endDateTo, #page, #size)"
+    )
     public PageResponseDto<PlanResponseDto> getAll(
+            Authentication authentication,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer responsibleUserId,
             @RequestParam(required = false) Integer projectId,

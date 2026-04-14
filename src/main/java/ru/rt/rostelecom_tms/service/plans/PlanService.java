@@ -1,8 +1,11 @@
 package ru.rt.rostelecom_tms.service.plans;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
@@ -139,6 +142,11 @@ public class PlanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public Plan create(CreatePlanCommand cmd, User caller) {
         checkCanCreate(caller);
         ensurePlanNameIsUnique(cmd.name(), null);
@@ -174,6 +182,11 @@ public class PlanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void update(int id, UpdatePlanCommand cmd, User caller) {
         Plan plan = findOne(id);
         checkWriteAccess(plan, caller);
@@ -209,6 +222,12 @@ public class PlanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void addCase(int planId, int caseId, User caller) {
         Plan plan = findOne(planId);
         checkWriteAccess(plan, caller);
@@ -227,6 +246,12 @@ public class PlanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void removeCase(int planId, int caseId, User caller) {
         Plan plan = findOne(planId);
         checkWriteAccess(plan, caller);
@@ -242,6 +267,12 @@ public class PlanService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void delete(int id, User caller) {
         Plan plan = findOne(id);
         checkWriteAccess(plan, caller);

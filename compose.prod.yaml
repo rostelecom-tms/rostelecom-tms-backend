@@ -22,6 +22,26 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  tms-redis:
+    image: redis:7-alpine
+    container_name: tms-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - tms_redisdata:/data
+    networks:
+      - tms-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   tms-back:
     build: .
     container_name: tms-back
@@ -30,9 +50,13 @@ services:
     depends_on:
       tms-db:
         condition: service_healthy
+      tms-redis:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://tms-db:5432/${POSTGRES_DB}
+      REDIS_HOST: tms-redis
+      REDIS_PORT: 6379
       APP_CORS_ORIGIN: ${APP_URL}
     networks:
       - tms-network
@@ -77,4 +101,7 @@ networks:
 volumes:
   tms_pgdata:
     name: tms-pgdata
+    driver: local
+  tms_redisdata:
+    name: tms-redisdata
     driver: local
