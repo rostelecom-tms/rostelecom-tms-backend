@@ -65,7 +65,7 @@ public class CaseGroupService {
         group.setSlug(cmd.slug());
 
         if (cmd.projectId() != null) {
-            Project project = projectRepository.findByIdWithMembers(cmd.projectId())
+            Project project = projectRepository.findOneById(cmd.projectId())
                     .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             group.setProject(project);
@@ -100,7 +100,7 @@ public class CaseGroupService {
         }
 
         if (cmd.projectId() != null) {
-            Project project = projectRepository.findByIdWithMembers(cmd.projectId())
+            Project project = projectRepository.findOneById(cmd.projectId())
                     .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             group.setProject(project);

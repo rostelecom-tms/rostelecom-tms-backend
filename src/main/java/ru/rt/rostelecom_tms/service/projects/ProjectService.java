@@ -38,14 +38,14 @@ public class ProjectService {
         }
 
         return switch (caller.getRole().getSlug()) {
-            case RoleSlugs.ADMIN -> projectRepository.findAllWithMembers();
-            case RoleSlugs.TEAMLEAD -> projectRepository.findAllOwnedOrMember(caller.getId());
-            default -> projectRepository.findAllByMemberUserId(caller.getId());
+            case RoleSlugs.ADMIN -> projectRepository.findAllBy();
+            case RoleSlugs.TEAMLEAD -> projectRepository.findDistinctByOwnerIdOrMembersUserId(caller.getId(), caller.getId());
+            default -> projectRepository.findDistinctByMembersUserId(caller.getId());
         };
     }
 
     public Project findOne(int id, User caller) {
-        Project project = projectRepository.findByIdWithMembers(id)
+        Project project = projectRepository.findOneById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + id));
         checkReadAccess(project, caller);
 
@@ -66,13 +66,13 @@ public class ProjectService {
         project.setCreatedAt(Instant.now());
 
         Project saved = projectRepository.save(project);
-        return projectRepository.findByIdWithMembers(saved.getId())
+        return projectRepository.findOneById(saved.getId())
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't reload project after create, id: " + saved.getId()));
     }
 
     @Transactional
     public void update(int id, UpdateProjectCommand cmd, User caller) {
-        Project project = projectRepository.findByIdWithMembers(id)
+        Project project = projectRepository.findOneById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + id));
         checkWriteAccess(project, caller);
 
@@ -92,7 +92,7 @@ public class ProjectService {
 
     @Transactional
     public void delete(int id, User caller) {
-        Project project = projectRepository.findByIdWithMembers(id)
+        Project project = projectRepository.findOneById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + id));
         checkWriteAccess(project, caller);
         projectRepository.deleteById(id);
@@ -100,7 +100,7 @@ public class ProjectService {
 
     @Transactional
     public void addMember(int projectId, int userId, User caller) {
-        Project project = projectRepository.findByIdWithMembers(projectId)
+        Project project = projectRepository.findOneById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + projectId));
         checkWriteAccess(project, caller);
 
@@ -121,7 +121,7 @@ public class ProjectService {
 
     @Transactional
     public void removeMember(int projectId, int userId, User caller) {
-        Project project = projectRepository.findByIdWithMembers(projectId)
+        Project project = projectRepository.findOneById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + projectId));
         checkWriteAccess(project, caller);
 
