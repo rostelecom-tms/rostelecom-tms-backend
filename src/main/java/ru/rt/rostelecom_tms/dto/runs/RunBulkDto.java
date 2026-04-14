@@ -8,6 +8,6 @@ import java.util.List;
 
 public record RunBulkDto (
     @NotNull Integer planId,
-    @NotNull Integer executedBy,
+    Integer executedBy,
     @Valid @NotEmpty List<ResultDto> results
 ) {}

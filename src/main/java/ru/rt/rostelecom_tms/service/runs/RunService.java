@@ -52,6 +52,12 @@ public class RunService {
             Instant executedAt
     ) {}
 
+    public record RunStatusView(
+            Integer id,
+            String name,
+            String slug
+    ) {}
+
     public List<Run> findAllWithProbableFilters(
             Integer planId,
             Integer caseId,
@@ -66,25 +72,31 @@ public class RunService {
         List<Run> runsFromServiceResponse;
 
         if (planId != null) {
-            runsFromServiceResponse = runRepository.findByPlanId(planId);
+            runsFromServiceResponse = runRepository.findByPlanIdOrderByExecutedAtDesc(planId);
         } else if (caseId != null) {
-            runsFromServiceResponse = runRepository.findByCaseFieldId(caseId);
+            runsFromServiceResponse = runRepository.findByCaseFieldIdOrderByExecutedAtDesc(caseId);
         } else if (statusId != null) {
-            runsFromServiceResponse = runRepository.findByStatusId(statusId);
+            runsFromServiceResponse = runRepository.findByStatusIdOrderByExecutedAtDesc(statusId);
         } else if (statusSlug != null) {
-            runsFromServiceResponse = runRepository.findByStatusSlug(statusSlug);
+            runsFromServiceResponse = runRepository.findByStatusSlugOrderByExecutedAtDesc(statusSlug);
         } else if (executedBy != null) {
-            runsFromServiceResponse = runRepository.findByExecutedById(executedBy);
+            runsFromServiceResponse = runRepository.findByExecutedByIdOrderByExecutedAtDesc(executedBy);
         } else if (executedFrom != null && executedTo != null) {
-            runsFromServiceResponse = runRepository.findByExecutedAtBetween(executedFrom, executedTo);
+            runsFromServiceResponse = runRepository.findByExecutedAtBetweenOrderByExecutedAtDesc(executedFrom, executedTo);
         } else if (groupId != null) {
-            runsFromServiceResponse = runRepository.findByCaseFieldGroupId(groupId);
+            runsFromServiceResponse = runRepository.findByCaseFieldGroupIdOrderByExecutedAtDesc(groupId);
         } else {
-            runsFromServiceResponse = runRepository.findAll();
+            runsFromServiceResponse = runRepository.findAllByOrderByExecutedAtDesc();
         }
 
         return runsFromServiceResponse.stream()
                 .filter(run -> hasProjectReadAccess(run.getPlan(), caller))
+                .toList();
+    }
+
+    public List<RunStatusView> listStatuses() {
+        return runStatusRepository.findAll().stream()
+                .map(status -> new RunStatusView(status.getId(), status.getName(), status.getSlug()))
                 .toList();
     }
 
@@ -96,49 +108,78 @@ public class RunService {
         ensureProjectWriteAccess(plan, caller);
 
         Case caseFromRun = caseRepository.findOneById(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
+        ensureCaseBelongsToPlan(caseFromRun, plan);
 
-        User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy()));
+        User user = resolveExecutor(cmd.executedBy(), caller);
 
         RunStatus runStatus = runStatusRepository.findById(cmd.statusId()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with id: " + cmd.statusId()));
-
-        Run run = new Run();
-
-        run.setPlan(plan);
-        run.setCaseField(caseFromRun);
-        run.setStatus(runStatus);
-        run.setExecutedBy(user);
-        run.setExecutedAt(cmd.executedAt());
-
-        return runRepository.save(run);
+        return runRepository.save(buildRun(plan, caseFromRun, runStatus, user, cmd.executedAt()));
     }
 
     @Transactional
     public List<Run> createRunsBulk(List<CreateRunCommandFromBulk> commands, User caller) {
-
         List<Run> runs = commands.stream().map(
                 cmd -> {
                     Case caseFromRun = caseRepository.findOneById(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
                     Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
                     ensureProjectWriteAccess(plan, caller);
+                    ensureCaseBelongsToPlan(caseFromRun, plan);
 
-                    User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy()));
+                    User user = resolveExecutor(cmd.executedBy(), caller);
 
                     RunStatus runStatus = runStatusRepository.findBySlug(cmd.statusSlug()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with slug: " + cmd.statusSlug()));
-
-                    Run run = new Run();
-
-                    run.setPlan(plan);
-                    run.setCaseField(caseFromRun);
-                    run.setStatus(runStatus);
-                    run.setExecutedBy(user);
-                    run.setExecutedAt(cmd.executedAt());
-
-                    return run;
+                    return buildRun(plan, caseFromRun, runStatus, user, cmd.executedAt());
                 }
                 ).toList();
 
-        return runs.stream().map(runRepository::save).toList();
+        return runRepository.saveAll(runs);
+    }
+
+    @Transactional
+    public List<Run> createRunsBulkFromIntegration(List<CreateRunCommandFromBulk> commands) {
+        List<Run> runs = commands.stream()
+                .map(cmd -> {
+                    Case caseFromRun = caseRepository.findOneById(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
+                    Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
+                    ensureCaseBelongsToPlan(caseFromRun, plan);
+
+                    User user = resolveExecutor(cmd.executedBy(), null);
+                    RunStatus runStatus = runStatusRepository.findBySlug(cmd.statusSlug()).orElseThrow(() -> new RunStatusNotFoundException("Couldn't find run status with slug: " + cmd.statusSlug()));
+
+                    return buildRun(plan, caseFromRun, runStatus, user, cmd.executedAt());
+                })
+                .toList();
+
+        return runRepository.saveAll(runs);
+    }
+
+    private Run buildRun(Plan plan, Case caseFromRun, RunStatus runStatus, User executedBy, Instant executedAt) {
+        Run run = new Run();
+        run.setPlan(plan);
+        run.setCaseField(caseFromRun);
+        run.setStatus(runStatus);
+        run.setExecutedBy(executedBy);
+        run.setExecutedAt(executedAt == null ? Instant.now() : executedAt);
+        return run;
+    }
+
+    private User resolveExecutor(Integer executedById, User fallbackCaller) {
+        if (executedById != null) {
+            return userRepository.findById(executedById)
+                    .orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + executedById));
+        }
+
+        return fallbackCaller;
+    }
+
+    private void ensureCaseBelongsToPlan(Case caseFromRun, Plan plan) {
+        boolean belongsToPlan = plan.getCases().stream()
+                .anyMatch(planCase -> Objects.equals(planCase.getId(), caseFromRun.getId()));
+
+        if (!belongsToPlan) {
+            throw new IllegalArgumentException("Case with id '" + caseFromRun.getId() + "' is not attached to plan with id '" + plan.getId() + "'");
+        }
     }
 
     private boolean hasProjectReadAccess(Plan plan, User caller) {

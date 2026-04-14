@@ -12,6 +12,6 @@ public record RunCreateDto(
         @NotNull Integer planId,
         @NotNull Integer caseId,
         @NotNull Integer statusId,
-        @NotNull Integer executedBy,
+        Integer executedBy,
         @NotNull Instant executedAt
 ) {}

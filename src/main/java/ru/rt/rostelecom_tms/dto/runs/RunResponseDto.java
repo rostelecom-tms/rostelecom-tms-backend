@@ -10,9 +10,14 @@ import java.time.Instant;
 public record RunResponseDto(
         Integer id,
         Integer caseId,
+        String caseTitle,
         Integer planId,
+        String planName,
+        Integer statusId,
         String statusName,
         String statusSlug,
         Integer executedBy,
+        String executedByUsername,
+        String executedByEmail,
         Instant executedAt
 ) {}
