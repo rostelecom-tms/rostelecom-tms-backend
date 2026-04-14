@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="012-case-tags" author="codex">
+        <createTable tableName="case_tags">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="cases_tags">
+            <column name="case_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="cases_tags"
+                columnNames="case_id, tag_id"
+                constraintName="pk_cases_tags"/>
+
+        <addForeignKeyConstraint
+                baseTableName="cases_tags"
+                baseColumnNames="case_id"
+                referencedTableName="cases"
+                referencedColumnNames="id"
+                constraintName="fk_cases_tags_case_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="cases_tags"
+                baseColumnNames="tag_id"
+                referencedTableName="case_tags"
+                referencedColumnNames="id"
+                constraintName="fk_cases_tags_tag_id"
+                onDelete="CASCADE"/>
+
+        <createIndex indexName="idx_case_tags_name" tableName="case_tags">
+            <column name="name"/>
+        </createIndex>
+
+        <createIndex indexName="idx_cases_tags_tag_id" tableName="cases_tags">
+            <column name="tag_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

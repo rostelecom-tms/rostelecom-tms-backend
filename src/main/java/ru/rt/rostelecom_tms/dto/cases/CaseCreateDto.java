@@ -16,6 +16,7 @@ public record CaseCreateDto(
         String description,
         String preconditions,
         String postconditions,
+        @Size(max = 30) List<@NotBlank @Size(max = 50) String> tags,
         @Valid List<CaseStepDto> steps
 ) {
 }

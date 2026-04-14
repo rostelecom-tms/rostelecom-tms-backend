@@ -13,6 +13,7 @@ public record CaseResponseDto(
         String description,
         String preconditions,
         String postconditions,
+        List<String> tags,
         Instant createdAt,
         List<CaseStepResponseDto> steps
 ) {
