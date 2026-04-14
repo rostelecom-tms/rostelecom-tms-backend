@@ -64,7 +64,7 @@ public class PlanService {
             return List.of();
         }
 
-        List<Plan> plans = planRepository.findAllWithUser();
+        List<Plan> plans = planRepository.findAllBy();
         if (plans.isEmpty()) {
             return plans;
         }
@@ -76,8 +76,8 @@ public class PlanService {
             visible = plans;
         } else {
             Set<Integer> accessibleProjectIds = RoleSlugs.TEAMLEAD.equals(slug)
-                    ? projectRepository.findAllOwnedOrMember(caller.getId()).stream().map(Project::getId).collect(java.util.stream.Collectors.toSet())
-                    : new HashSet<>(projectRepository.findAllByMemberUserId(caller.getId()).stream().map(Project::getId).toList());
+                    ? projectRepository.findDistinctByOwnerIdOrMembersUserId(caller.getId(), caller.getId()).stream().map(Project::getId).collect(java.util.stream.Collectors.toSet())
+                    : new HashSet<>(projectRepository.findDistinctByMembersUserId(caller.getId()).stream().map(Project::getId).toList());
 
             visible = plans.stream()
                     .filter(plan -> {
@@ -94,11 +94,11 @@ public class PlanService {
         }
 
         if (visible.isEmpty()) return visible;
-        return planRepository.fetchCasesForPlans(visible);
+        return planRepository.findDistinctByIdIn(visible.stream().map(Plan::getId).toList());
     }
 
     private Plan findOne(int id) {
-        return planRepository.findByIdWithCasesAndUser(id)
+        return planRepository.findOneById(id)
                 .orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + id));
     }
 
@@ -123,7 +123,7 @@ public class PlanService {
         plan.setCreatedAt(Instant.now());
 
         if (cmd.projectId() != null) {
-            Project project = projectRepository.findByIdWithMembers(cmd.projectId())
+            Project project = projectRepository.findOneById(cmd.projectId())
                     .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             plan.setProject(project);
@@ -139,7 +139,7 @@ public class PlanService {
         }
 
         Plan saved = planRepository.save(plan);
-        return planRepository.findByIdWithCasesAndUser(saved.getId())
+        return planRepository.findOneById(saved.getId())
                 .orElseThrow(() -> new PlanNotFoundException("Couldn't reload plan after create, id: " + saved.getId()));
     }
 
@@ -162,7 +162,7 @@ public class PlanService {
         if (cmd.endDate() != null) plan.setEndDate(cmd.endDate());
 
         if (cmd.projectId() != null) {
-            Project project = projectRepository.findByIdWithMembers(cmd.projectId())
+            Project project = projectRepository.findOneById(cmd.projectId())
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             plan.setProject(project);

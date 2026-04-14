@@ -49,26 +49,26 @@ public class CaseService {
     }
 
     public List<Case> findAll(User caller) {
-        return caseRepository.findAllWithStepsAndGroup().stream()
+        return caseRepository.findAllBy().stream()
                 .filter(testCase -> hasReadAccess(testCase, caller))
                 .toList();
     }
 
     public List<Case> findAllByGroup(int groupId, User caller) {
         caseGroupService.findOne(groupId, caller);
-        return caseRepository.findAllByGroupIdWithSteps(groupId).stream()
+        return caseRepository.findAllByGroupId(groupId).stream()
                 .filter(testCase -> hasReadAccess(testCase, caller))
                 .toList();
     }
 
     public List<Case> findAllByPlan(int planId, User caller) {
-        return caseRepository.findAllByPlanId(planId).stream()
+        return caseRepository.findDistinctByPlansId(planId).stream()
                 .filter(testCase -> hasReadAccess(testCase, caller))
                 .toList();
     }
 
     public Case findOne(int id, User caller) {
-        Case testCase = caseRepository.findByIdWithSteps(id)
+        Case testCase = caseRepository.findOneById(id)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + id));
         if (!hasReadAccess(testCase, caller)) {
             throw new org.springframework.security.access.AccessDeniedException("No access to case");

@@ -95,7 +95,7 @@ public class RunService {
         Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
         ensureProjectWriteAccess(plan, caller);
 
-        Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
+        Case caseFromRun = caseRepository.findOneById(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
         User user = userRepository.findById(cmd.executedBy()).orElseThrow(() -> new UserNotFoundException("Couldn't find user with id: " + cmd.executedBy()));
 
@@ -117,7 +117,7 @@ public class RunService {
 
         List<Run> runs = commands.stream().map(
                 cmd -> {
-                    Case caseFromRun = caseRepository.findByIdWithSteps(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
+                    Case caseFromRun = caseRepository.findOneById(cmd.caseId()).orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
                     Plan plan = planRepository.findById(cmd.planId()).orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + cmd.planId()));
                     ensureProjectWriteAccess(plan, caller);

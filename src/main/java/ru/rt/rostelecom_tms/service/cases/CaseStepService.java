@@ -38,12 +38,12 @@ public class CaseStepService {
     ) {}
 
     public List<CaseStep> findAllByCaseId(Integer caseId) {
-        return caseStepRepository.findAllByCaseId(caseId);
+        return caseStepRepository.findAllByCaseFieldIdOrderByOrderAsc(caseId);
     }
 
     @Transactional
     public List<CaseStep> createCaseSteps(Integer caseId, List<StepCommand> cmd) {
-        Case existingCase = caseRepository.findByIdWithSteps(caseId)
+        Case existingCase = caseRepository.findOneById(caseId)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
 
         validateStepCommands(cmd);
