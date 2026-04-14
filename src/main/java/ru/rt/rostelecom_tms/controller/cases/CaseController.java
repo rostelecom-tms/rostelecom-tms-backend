@@ -3,8 +3,10 @@ package ru.rt.rostelecom_tms.controller.cases;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.dto.cases.CaseCreateDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
@@ -39,7 +42,12 @@ public class CaseController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
     @GetMapping
+    @Cacheable(
+            value = CacheNames.CASES_PAGE,
+            key = "T(java.lang.String).format('%s|%s|%s|%s|%s|%s|%s|%s|%s', #authentication?.name, #groupId, #planId, #title, #tag, #createdFrom, #createdTo, #page, #size)"
+    )
     public PageResponseDto<CaseSimpleResponseDto> getAll(
+            Authentication authentication,
             @RequestParam(required = false) Integer groupId,
             @RequestParam(required = false) Integer planId,
             @RequestParam(required = false) String title,

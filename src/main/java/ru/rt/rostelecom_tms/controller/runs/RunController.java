@@ -2,10 +2,13 @@ package ru.rt.rostelecom_tms.controller.runs;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.dto.common.PageResponseDto;
 import ru.rt.rostelecom_tms.dto.runs.RunBulkDto;
 import ru.rt.rostelecom_tms.dto.runs.RunCreateDto;
@@ -36,7 +39,12 @@ public class RunController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping
+    @Cacheable(
+            value = CacheNames.RUNS_PAGE,
+            key = "T(java.lang.String).format('%s|%s|%s|%s|%s|%s|%s|%s|%s|%s', #authentication?.name, #planId, #caseId, #statusId, #statusSlug, #executedBy, #executedFrom, #executedTo, #groupId, #page + ':' + #size)"
+    )
     public PageResponseDto<RunResponseDto> getAll(
+            Authentication authentication,
             @RequestParam(required = false) Integer planId,
             @RequestParam(required = false) Integer caseId,
             @RequestParam(required = false) Integer statusId,

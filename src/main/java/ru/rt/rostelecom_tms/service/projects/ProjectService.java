@@ -1,8 +1,11 @@
 package ru.rt.rostelecom_tms.service.projects;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.projects.Project;
 import ru.rt.rostelecom_tms.domain.projects.ProjectMember;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAccessDeniedException;
@@ -53,6 +56,13 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public Project create(CreateProjectCommand cmd, User caller) {
         checkCanCreate(caller);
         if (projectRepository.existsByName(cmd.name())) {
@@ -71,6 +81,13 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void update(int id, UpdateProjectCommand cmd, User caller) {
         Project project = projectRepository.findOneById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + id));
@@ -91,6 +108,13 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void delete(int id, User caller) {
         Project project = projectRepository.findOneById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + id));
@@ -99,6 +123,13 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void addMember(int projectId, int userId, User caller) {
         Project project = projectRepository.findOneById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + projectId));
@@ -120,6 +151,13 @@ public class ProjectService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.PROJECTS_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.PLANS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.CASES_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
+            @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
+    })
     public void removeMember(int projectId, int userId, User caller) {
         Project project = projectRepository.findOneById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + projectId));
