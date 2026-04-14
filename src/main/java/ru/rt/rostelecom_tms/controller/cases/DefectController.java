@@ -49,4 +49,12 @@ public class DefectController {
     public void update(@PathVariable Integer id, @RequestBody @Valid DefectUpdateDto dto) {
         defectService.update(id, CaseMapper.toUpdateCommand(dto));
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        defectService.delete(id);
+    }
 }

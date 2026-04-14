@@ -1,12 +1,14 @@
 package ru.rt.rostelecom_tms.service.cases;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseStepNotFoundException;
+import ru.rt.rostelecom_tms.events.CaseIndexEvent;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 import ru.rt.rostelecom_tms.repository.cases.CaseStepRepository;
 
@@ -22,6 +24,7 @@ public class CaseStepService {
 
     private final CaseStepRepository caseStepRepository;
     private final CaseRepository caseRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public record StepCommand(
             Integer order,
@@ -54,7 +57,9 @@ public class CaseStepService {
         combined.addAll(newSteps);
         validateCaseSteps(combined);
 
-        return caseStepRepository.saveAll(newSteps);
+        List<CaseStep> saved = caseStepRepository.saveAll(newSteps);
+        eventPublisher.publishEvent(CaseIndexEvent.upsert(caseId));
+        return saved;
     }
 
     @Transactional
@@ -80,6 +85,7 @@ public class CaseStepService {
         validateCaseSteps(caseStep.getCaseField().getCaseSteps().stream().toList());
 
         caseStepRepository.save(caseStep);
+        eventPublisher.publishEvent(CaseIndexEvent.upsert(caseStep.getCaseField().getId()));
     }
 
     @Transactional
@@ -92,6 +98,7 @@ public class CaseStepService {
         caseRepository.save(newCase);
 
         caseStepRepository.delete(caseStep);
+        eventPublisher.publishEvent(CaseIndexEvent.upsert(newCase.getId()));
     }
 
     public static List<CaseStep> buildSteps(List<StepCommand> stepCommands, Case parent) {

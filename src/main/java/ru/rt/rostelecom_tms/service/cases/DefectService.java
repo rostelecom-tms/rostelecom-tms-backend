@@ -1,12 +1,14 @@
 package ru.rt.rostelecom_tms.service.cases;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.Defect;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.DefectNotFoundException;
+import ru.rt.rostelecom_tms.events.DefectIndexEvent;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 import ru.rt.rostelecom_tms.repository.cases.DefectRepository;
 
@@ -20,6 +22,7 @@ public class DefectService {
 
     private final DefectRepository defectRepository;
     private final CaseRepository caseRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public record CreateDefectCommand(
         Integer caseId,
@@ -37,25 +40,24 @@ public class DefectService {
         if (caseId == null) {
             return defectRepository.findAllByOrderByCreatedAtDesc();
         }
-
         return defectRepository.findByCaseFieldIdOrderByCreatedAtDesc(caseId);
     }
 
     @Transactional
     public Defect create(CreateDefectCommand cmd) {
-
         Case parent = caseRepository.findById(cmd.caseId())
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + cmd.caseId()));
 
         Defect defect = new Defect();
-
         defect.setCaseField(parent);
         defect.setTitle(cmd.title());
         defect.setDescription(cmd.description());
         defect.setIsSolved(false);
         defect.setCreatedAt(Instant.now());
 
-        return defectRepository.save(defect);
+        Defect saved = defectRepository.save(defect);
+        eventPublisher.publishEvent(DefectIndexEvent.upsert(saved.getId()));
+        return saved;
     }
 
     @Transactional
@@ -66,15 +68,23 @@ public class DefectService {
         if (cmd.title() != null) {
             defect.setTitle(cmd.title());
         }
-
         if (cmd.description() != null) {
             defect.setDescription(cmd.description());
         }
-
         if (cmd.isSolved() != null) {
             defect.setIsSolved(cmd.isSolved());
         }
 
         defectRepository.save(defect);
+        eventPublisher.publishEvent(DefectIndexEvent.upsert(id));
+    }
+
+    @Transactional
+    public void delete(Integer id) {
+        if (!defectRepository.existsById(id)) {
+            throw new DefectNotFoundException("Couldn't find defect with id: " + id);
+        }
+        defectRepository.deleteById(id);
+        eventPublisher.publishEvent(DefectIndexEvent.delete(id));
     }
 }

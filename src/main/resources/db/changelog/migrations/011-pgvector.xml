@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="011-pgvector-extension" author="tms">
+        <sql>CREATE EXTENSION IF NOT EXISTS vector</sql>
+    </changeSet>
+
+    <changeSet id="011-case-embeddings" author="tms">
+        <createTable tableName="case_embeddings">
+            <column name="case_id" type="INT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="embedding" type="vector(1536)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="case_embeddings"
+                baseColumnNames="case_id"
+                referencedTableName="cases"
+                referencedColumnNames="id"
+                constraintName="fk_case_embeddings_case_id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="011-defect-embeddings" author="tms">
+        <createTable tableName="defect_embeddings">
+            <column name="defect_id" type="INT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="embedding" type="vector(1536)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="defect_embeddings"
+                baseColumnNames="defect_id"
+                referencedTableName="defects"
+                referencedColumnNames="id"
+                constraintName="fk_defect_embeddings_defect_id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
