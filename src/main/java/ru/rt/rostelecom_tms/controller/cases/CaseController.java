@@ -20,11 +20,13 @@ import ru.rt.rostelecom_tms.dto.cases.CaseCreateDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseUpdateDto;
+import ru.rt.rostelecom_tms.dto.common.PageResponseDto;
 import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
+import ru.rt.rostelecom_tms.util.PaginationUtils;
 import ru.rt.rostelecom_tms.util.mappers.CaseMapper;
 
-import java.util.List;
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/cases")
@@ -37,24 +39,28 @@ public class CaseController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public List<CaseSimpleResponseDto> getAll(
+    public PageResponseDto<CaseSimpleResponseDto> getAll(
             @RequestParam(required = false) Integer groupId,
-            @RequestParam(required = false) Integer planId
+            @RequestParam(required = false) Integer planId,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) Instant createdFrom,
+            @RequestParam(required = false) Instant createdTo,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         User caller = currentUserResolver.resolveOrThrow();
-        if (planId != null) {
-            return caseService.findAllByPlan(planId, caller).stream()
-                    .map(CaseMapper::toSimpleDto)
-                    .toList();
-        }
-        if (groupId != null) {
-            return caseService.findAllByGroup(groupId, caller).stream()
-                    .map(CaseMapper::toSimpleDto)
-                    .toList();
-        }
-        return caseService.findAll(caller).stream()
+        return PaginationUtils.paginate(caseService.findAllWithFilters(
+                        groupId,
+                        planId,
+                        title,
+                        tag,
+                        createdFrom,
+                        createdTo,
+                        caller
+                ).stream()
                 .map(CaseMapper::toSimpleDto)
-                .toList();
+                .toList(), page, size);
     }
 
     @SecurityRequirement(name = "bearerAuth")

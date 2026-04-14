@@ -97,6 +97,36 @@ public class PlanService {
         return planRepository.findDistinctByIdIn(visible.stream().map(Plan::getId).toList());
     }
 
+    public List<Plan> findAllWithFilters(
+            String name,
+            Integer responsibleUserId,
+            Integer projectId,
+            LocalDate startDateFrom,
+            LocalDate startDateTo,
+            LocalDate endDateFrom,
+            LocalDate endDateTo,
+            User caller
+    ) {
+        String normalizedName = name == null ? null : name.trim().toLowerCase();
+
+        return findAll(caller).stream()
+                .filter(plan -> normalizedName == null || normalizedName.isBlank()
+                        || plan.getName().toLowerCase().contains(normalizedName))
+                .filter(plan -> responsibleUserId == null
+                        || (plan.getResponsibleUser() != null && Objects.equals(plan.getResponsibleUser().getId(), responsibleUserId)))
+                .filter(plan -> projectId == null
+                        || (plan.getProject() != null && Objects.equals(plan.getProject().getId(), projectId)))
+                .filter(plan -> startDateFrom == null
+                        || (plan.getStartDate() != null && !plan.getStartDate().isBefore(startDateFrom)))
+                .filter(plan -> startDateTo == null
+                        || (plan.getStartDate() != null && !plan.getStartDate().isAfter(startDateTo)))
+                .filter(plan -> endDateFrom == null
+                        || (plan.getEndDate() != null && !plan.getEndDate().isBefore(endDateFrom)))
+                .filter(plan -> endDateTo == null
+                        || (plan.getEndDate() != null && !plan.getEndDate().isAfter(endDateTo)))
+                .toList();
+    }
+
     private Plan findOne(int id) {
         return planRepository.findOneById(id)
                 .orElseThrow(() -> new PlanNotFoundException("Couldn't find plan with id: " + id));
@@ -127,11 +157,11 @@ public class PlanService {
                     .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             plan.setProject(project);
-        } else if (caller != null && !RoleSlugs.ADMIN.equals(caller.getRole().getSlug())) {
+        } else if (!RoleSlugs.ADMIN.equals(caller.getRole().getSlug())) {
             throw new PlanCreationNotAllowedException("Plan must be created inside a project");
         }
 
-        if (caller != null && RoleSlugs.TEAMLEAD.equals(caller.getRole().getSlug())) {
+        if (RoleSlugs.TEAMLEAD.equals(caller.getRole().getSlug())) {
             plan.setResponsibleUser(caller);
         } else if (cmd.responsibleUserId() != null) {
             User user = userService.findOne(cmd.responsibleUserId());
@@ -168,7 +198,7 @@ public class PlanService {
             plan.setProject(project);
         }
 
-        if (caller != null && !RoleSlugs.TEAMLEAD.equals(caller.getRole().getSlug())) {
+        if (!RoleSlugs.TEAMLEAD.equals(caller.getRole().getSlug())) {
             if (cmd.responsibleUserId() != null) {
                 User user = userService.findOne(cmd.responsibleUserId());
                 plan.setResponsibleUser(user);

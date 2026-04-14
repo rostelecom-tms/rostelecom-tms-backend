@@ -69,27 +69,15 @@ public class RunService {
             Integer groupId,
             User caller
     ) {
-        List<Run> runsFromServiceResponse;
-
-        if (planId != null) {
-            runsFromServiceResponse = runRepository.findByPlanIdOrderByExecutedAtDesc(planId);
-        } else if (caseId != null) {
-            runsFromServiceResponse = runRepository.findByCaseFieldIdOrderByExecutedAtDesc(caseId);
-        } else if (statusId != null) {
-            runsFromServiceResponse = runRepository.findByStatusIdOrderByExecutedAtDesc(statusId);
-        } else if (statusSlug != null) {
-            runsFromServiceResponse = runRepository.findByStatusSlugOrderByExecutedAtDesc(statusSlug);
-        } else if (executedBy != null) {
-            runsFromServiceResponse = runRepository.findByExecutedByIdOrderByExecutedAtDesc(executedBy);
-        } else if (executedFrom != null && executedTo != null) {
-            runsFromServiceResponse = runRepository.findByExecutedAtBetweenOrderByExecutedAtDesc(executedFrom, executedTo);
-        } else if (groupId != null) {
-            runsFromServiceResponse = runRepository.findByCaseFieldGroupIdOrderByExecutedAtDesc(groupId);
-        } else {
-            runsFromServiceResponse = runRepository.findAllByOrderByExecutedAtDesc();
-        }
-
-        return runsFromServiceResponse.stream()
+        return runRepository.findAllByOrderByExecutedAtDesc().stream()
+                .filter(run -> planId == null || Objects.equals(run.getPlan().getId(), planId))
+                .filter(run -> caseId == null || Objects.equals(run.getCaseField().getId(), caseId))
+                .filter(run -> statusId == null || Objects.equals(run.getStatus().getId(), statusId))
+                .filter(run -> statusSlug == null || statusSlug.isBlank() || statusSlug.equals(run.getStatus().getSlug()))
+                .filter(run -> executedBy == null || (run.getExecutedBy() != null && Objects.equals(run.getExecutedBy().getId(), executedBy)))
+                .filter(run -> groupId == null || Objects.equals(run.getCaseField().getGroup().getId(), groupId))
+                .filter(run -> executedFrom == null || !run.getExecutedAt().isBefore(executedFrom))
+                .filter(run -> executedTo == null || !run.getExecutedAt().isAfter(executedTo))
                 .filter(run -> hasProjectReadAccess(run.getPlan(), caller))
                 .toList();
     }

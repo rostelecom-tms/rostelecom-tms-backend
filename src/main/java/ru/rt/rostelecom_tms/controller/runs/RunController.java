@@ -6,12 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.dto.common.PageResponseDto;
 import ru.rt.rostelecom_tms.dto.runs.RunBulkDto;
 import ru.rt.rostelecom_tms.dto.runs.RunCreateDto;
 import ru.rt.rostelecom_tms.dto.runs.RunResponseDto;
 import ru.rt.rostelecom_tms.dto.runs.RunStatusResponseDto;
 import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.service.runs.RunService;
+import ru.rt.rostelecom_tms.util.PaginationUtils;
 import ru.rt.rostelecom_tms.util.mappers.RunMapper;
 
 import java.time.Instant;
@@ -34,7 +36,7 @@ public class RunController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public List<RunResponseDto> getAll(
+    public PageResponseDto<RunResponseDto> getAll(
             @RequestParam(required = false) Integer planId,
             @RequestParam(required = false) Integer caseId,
             @RequestParam(required = false) Integer statusId,
@@ -42,20 +44,28 @@ public class RunController {
             @RequestParam(required = false) Integer executedBy,
             @RequestParam(required = false) Instant executedFrom,
             @RequestParam(required = false) Instant executedTo,
-            @RequestParam(required = false) Integer groupId
+            @RequestParam(required = false) Integer groupId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
-            User caller = currentUserResolver.resolveOrThrow();
-        return runService.findAllWithProbableFilters(
-                planId,
-                caseId,
-                statusId,
-                statusSlug,
-                executedBy,
-                executedFrom,
-                executedTo,
-                groupId,
-                caller
-        ).stream().map(RunMapper::toRunResponseDto).toList();
+        User caller = currentUserResolver.resolveOrThrow();
+        return PaginationUtils.paginate(
+                runService.findAllWithProbableFilters(
+                                planId,
+                                caseId,
+                                statusId,
+                                statusSlug,
+                                executedBy,
+                                executedFrom,
+                                executedTo,
+                                groupId,
+                                caller
+                        ).stream()
+                        .map(RunMapper::toRunResponseDto)
+                        .toList(),
+                page,
+                size
+        );
 
     }
 
