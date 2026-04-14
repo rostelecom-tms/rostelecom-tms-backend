@@ -12,17 +12,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.dto.common.PageResponseDto;
 import ru.rt.rostelecom_tms.dto.plans.PlanCreateDto;
 import ru.rt.rostelecom_tms.dto.plans.PlanResponseDto;
 import ru.rt.rostelecom_tms.dto.plans.PlanUpdateDto;
 import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.service.plans.PlanService;
+import ru.rt.rostelecom_tms.util.PaginationUtils;
 import ru.rt.rostelecom_tms.util.mappers.PlanMapper;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/plans")
@@ -35,11 +38,30 @@ public class PlanController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public List<PlanResponseDto> getAll() {
+    public PageResponseDto<PlanResponseDto> getAll(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer responsibleUserId,
+            @RequestParam(required = false) Integer projectId,
+            @RequestParam(required = false) LocalDate startDateFrom,
+            @RequestParam(required = false) LocalDate startDateTo,
+            @RequestParam(required = false) LocalDate endDateFrom,
+            @RequestParam(required = false) LocalDate endDateTo,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
         User caller = currentUserResolver.resolveOrThrow();
-        return planService.findAll(caller).stream()
+        return PaginationUtils.paginate(planService.findAllWithFilters(
+                        name,
+                        responsibleUserId,
+                        projectId,
+                        startDateFrom,
+                        startDateTo,
+                        endDateFrom,
+                        endDateTo,
+                        caller
+                ).stream()
                 .map(PlanMapper::toDto)
-                .toList();
+                .toList(), page, size);
     }
 
     @SecurityRequirement(name = "bearerAuth")

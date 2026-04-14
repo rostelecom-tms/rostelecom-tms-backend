@@ -75,6 +75,37 @@ public class CaseService {
                 .toList();
     }
 
+    public List<Case> findAllWithFilters(
+            Integer groupId,
+            Integer planId,
+            String title,
+            String tag,
+            Instant createdFrom,
+            Instant createdTo,
+            User caller
+    ) {
+        List<Case> base;
+        if (planId != null) {
+            base = findAllByPlan(planId, caller);
+        } else if (groupId != null) {
+            base = findAllByGroup(groupId, caller);
+        } else {
+            base = findAll(caller);
+        }
+
+        String normalizedTitle = title == null ? null : title.trim().toLowerCase();
+        String normalizedTag = tag == null ? null : tag.trim().toLowerCase();
+
+        return base.stream()
+                .filter(testCase -> normalizedTitle == null || normalizedTitle.isBlank()
+                        || testCase.getTitle().toLowerCase().contains(normalizedTitle))
+                .filter(testCase -> normalizedTag == null || normalizedTag.isBlank()
+                        || testCase.getTags().stream().anyMatch(caseTag -> normalizedTag.equals(caseTag.getName())))
+                .filter(testCase -> createdFrom == null || !testCase.getCreatedAt().isBefore(createdFrom))
+                .filter(testCase -> createdTo == null || !testCase.getCreatedAt().isAfter(createdTo))
+                .toList();
+    }
+
     public Case findOne(int id, User caller) {
         Case testCase = caseRepository.findOneById(id)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + id));
