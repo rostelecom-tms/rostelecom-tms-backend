@@ -3,6 +3,7 @@ package ru.rt.rostelecom_tms.util.mappers;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
+import ru.rt.rostelecom_tms.domain.cases.CaseTag;
 import ru.rt.rostelecom_tms.domain.cases.Defect;
 import ru.rt.rostelecom_tms.dto.cases.*;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
@@ -24,6 +25,7 @@ public class CaseMapper {
                 dto.description(),
                 dto.preconditions(),
                 dto.postconditions(),
+                dto.tags(),
                 dto.steps() == null ? null : dto.steps().stream()
                         .map(s -> new StepCommand(s.order(), s.title(), s.action(), s.expectedResult()))
                         .toList()
@@ -54,6 +56,7 @@ public class CaseMapper {
                 dto.description(),
                 dto.preconditions(),
                 dto.postconditions(),
+                dto.tags(),
                 dto.steps() == null ? null : dto.steps().stream()
                         .map(s -> new StepCommand(s.order(), s.title(), s.action(), s.expectedResult()))
                         .toList()
@@ -78,7 +81,15 @@ public class CaseMapper {
     }
 
     public static CaseSimpleResponseDto toSimpleDto(Case c) {
-        return new CaseSimpleResponseDto(c.getId(), c.getTitle(), c.getGroup().getId());
+        return new CaseSimpleResponseDto(
+                c.getId(),
+                c.getTitle(),
+                c.getGroup().getId(),
+                c.getTags().stream()
+                        .map(CaseTag::getName)
+                        .sorted(String::compareToIgnoreCase)
+                        .toList()
+        );
     }
 
     public static CaseGroupResponseDto toDto(CaseGroup group) {
@@ -116,6 +127,10 @@ public class CaseMapper {
                 c.getDescription(),
                 c.getPreconditions(),
                 c.getPostconditions(),
+                c.getTags().stream()
+                        .map(CaseTag::getName)
+                        .sorted(String::compareToIgnoreCase)
+                        .toList(),
                 c.getCreatedAt(),
                 steps
         );

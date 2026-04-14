@@ -6,16 +6,21 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Case;
 import ru.rt.rostelecom_tms.domain.cases.CaseGroup;
 import ru.rt.rostelecom_tms.domain.cases.CaseStep;
+import ru.rt.rostelecom_tms.domain.cases.CaseTag;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
+import ru.rt.rostelecom_tms.repository.cases.CaseTagRepository;
 import ru.rt.rostelecom_tms.repository.projects.ProjectMemberRepository;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static ru.rt.rostelecom_tms.service.cases.CaseStepService.*;
 
@@ -25,6 +30,7 @@ import static ru.rt.rostelecom_tms.service.cases.CaseStepService.*;
 public class CaseService {
 
     private final CaseRepository caseRepository;
+    private final CaseTagRepository caseTagRepository;
     private final CaseGroupService caseGroupService;
     private final ProjectMemberRepository projectMemberRepository;
 
@@ -34,6 +40,7 @@ public class CaseService {
             String description,
             String preconditions,
             String postconditions,
+            List<String> tags,
             List<StepCommand> steps
     ) {
     }
@@ -44,6 +51,7 @@ public class CaseService {
             String description,
             String preconditions,
             String postconditions,
+            List<String> tags,
             List<StepCommand> steps
     ) {
     }
@@ -90,6 +98,7 @@ public class CaseService {
         newCase.setPreconditions(cmd.preconditions());
         newCase.setPostconditions(cmd.postconditions());
         newCase.setCreatedAt(Instant.now());
+        newCase.setTags(resolveTags(cmd.tags()));
 
         Case saved = caseRepository.save(newCase);
 
@@ -130,6 +139,10 @@ public class CaseService {
         if (cmd.postconditions() != null) {
             existingCase.setPostconditions(cmd.postconditions());
         }
+        if (cmd.tags() != null) {
+            existingCase.getTags().clear();
+            existingCase.getTags().addAll(resolveTags(cmd.tags()));
+        }
         if (cmd.steps() != null) {
             existingCase.getCaseSteps().clear();
             caseRepository.saveAndFlush(existingCase);
@@ -165,6 +178,45 @@ public class CaseService {
         throw new CaseAlreadyExistsException(
                 "Case with title '" + title + "' already exists in group with id '" + groupId + "'"
         );
+    }
+
+    private Set<CaseTag> resolveTags(List<String> rawTags) {
+        if (rawTags == null || rawTags.isEmpty()) {
+            return new LinkedHashSet<>();
+        }
+
+        Set<String> normalized = normalizeTags(rawTags);
+        List<CaseTag> existing = caseTagRepository.findAllByNameIn(normalized);
+        Set<String> existingNames = existing.stream()
+                .map(CaseTag::getName)
+                .collect(java.util.stream.Collectors.toSet());
+
+        Set<CaseTag> resolved = new LinkedHashSet<>(existing);
+        for (String tagName : normalized) {
+            if (existingNames.contains(tagName)) {
+                continue;
+            }
+            CaseTag created = new CaseTag();
+            created.setName(tagName);
+            resolved.add(caseTagRepository.save(created));
+        }
+
+        return resolved;
+    }
+
+    private Set<String> normalizeTags(Collection<String> tags) {
+        Set<String> result = new LinkedHashSet<>();
+        for (String rawTag : tags) {
+            if (rawTag == null) {
+                continue;
+            }
+            String cleaned = rawTag.trim().toLowerCase();
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+            result.add(cleaned);
+        }
+        return result;
     }
 
     private boolean hasReadAccess(Case testCase, User caller) {

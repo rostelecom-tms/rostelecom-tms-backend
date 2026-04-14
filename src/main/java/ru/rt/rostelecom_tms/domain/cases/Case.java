@@ -57,6 +57,14 @@ public class Case {
     @ManyToMany(mappedBy = "cases")
     private List<Plan> plans = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "cases_tags",
+            joinColumns = @JoinColumn(name = "case_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<CaseTag> tags = new LinkedHashSet<>();
+
     @OneToMany(mappedBy = "caseField")
     private Set<Run> runs = new LinkedHashSet<>();
 }
