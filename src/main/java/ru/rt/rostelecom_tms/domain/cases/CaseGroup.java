@@ -33,6 +33,14 @@ public class CaseGroup {
     @JoinColumn(name = "project_id")
     private Project project;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
+    @JoinColumn(name = "parent_id")
+    private CaseGroup parent;
+
+    @OneToMany(mappedBy = "parent")
+    private Set<CaseGroup> children = new LinkedHashSet<>();
+
     @OneToMany(mappedBy = "group")
     private Set<Case> cases = new LinkedHashSet<>();
-}
+}

@@ -5,5 +5,6 @@ package ru.rt.rostelecom_tms.dto.cases;
  */
 public record CaseSimpleResponseDto(
         Integer id,
-        String title
+        String title,
+        Integer groupId
 ) {}

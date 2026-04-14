@@ -55,8 +55,8 @@ public class CaseService {
     }
 
     public List<Case> findAllByGroup(int groupId, User caller) {
-        caseGroupService.findOne(groupId, caller);
-        return caseRepository.findAllByGroupId(groupId).stream()
+        List<Integer> groupIds = caseGroupService.findSubtreeGroupIds(groupId, caller);
+        return caseRepository.findDistinctByGroupIdIn(groupIds).stream()
                 .filter(testCase -> hasReadAccess(testCase, caller))
                 .toList();
     }

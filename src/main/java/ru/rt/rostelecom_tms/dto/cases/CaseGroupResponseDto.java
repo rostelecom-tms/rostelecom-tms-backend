@@ -7,6 +7,7 @@ public record CaseGroupResponseDto(
         Integer id,
         String name,
         String slug,
-        Integer projectId
+        Integer projectId,
+        Integer parentId
 ) {
 }
