@@ -15,6 +15,8 @@
     <include file="db/changelog/migrations/008-seed-plans.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/009-teamlead.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/010-projects.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/011-pgvector.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/012-pgvector-resize.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/011-case-groups-hierarchy.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/012-case-tags.xml" relativeToChangelogFile="false"/>
 

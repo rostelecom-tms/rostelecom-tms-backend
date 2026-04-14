@@ -2,6 +2,12 @@ spring:
   datasource:
     url: jdbc:postgresql://tms-db:5432/${POSTGRES_DB}
 
+app:
+  embedding:
+    ollama-base-url: ${OLLAMA_BASE_URL:http://tms-ollama:11434}
+  llm:
+    ollama-base-url: ${OLLAMA_BASE_URL:http://tms-ollama:11434}
+
 springdoc:
   swagger-ui:
     enabled: false

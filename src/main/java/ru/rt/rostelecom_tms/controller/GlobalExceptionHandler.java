@@ -32,6 +32,8 @@ import ru.rt.rostelecom_tms.domain.runs.exceptions.RunStatusNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotAllowedException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotFoundException;
+import ru.rt.rostelecom_tms.service.embedding.EmbeddingProviderException;
+import ru.rt.rostelecom_tms.service.llm.LlmProviderException;
 
 import java.util.stream.Collectors;
 
@@ -79,6 +81,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(
                 new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler({EmbeddingProviderException.class, LlmProviderException.class})
+    public ResponseEntity<ErrorResponse> handleAiProviderUnavailable(RuntimeException e) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
+                HttpStatus.SERVICE_UNAVAILABLE
         );
     }
 
