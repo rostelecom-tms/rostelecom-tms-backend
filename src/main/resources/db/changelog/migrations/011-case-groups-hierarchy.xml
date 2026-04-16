@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="011-case-groups-hierarchy" author="codex">
+        <addColumn tableName="case_groups">
+            <column name="parent_id" type="INT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="case_groups"
+                baseColumnNames="parent_id"
+                referencedTableName="case_groups"
+                referencedColumnNames="id"
+                constraintName="fk_case_groups_parent_id"
+                onDelete="RESTRICT"/>
+
+        <createIndex indexName="idx_case_groups_parent_id" tableName="case_groups">
+            <column name="parent_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

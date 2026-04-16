@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <include file="db/changelog/migrations/001-users.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/002-cases.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/003-plans.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/004-runs.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/005-seed-roles.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/006-seed-run-statuses.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/007-seed-cases.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/008-seed-plans.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/009-teamlead.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/010-projects.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/011-case-groups-hierarchy.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/012-case-tags.xml" relativeToChangelogFile="false"/>
+
+</databaseChangeLog>
+
+

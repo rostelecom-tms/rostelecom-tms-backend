@@ -1,0 +1,107 @@
+# я запускаюсь через "docker compose -f compose.prod.yaml up"
+# я выключаюсь через "docker compose -f compose.prod.yaml down"
+
+services:
+  tms-db:
+    image: postgres:16-alpine
+    container_name: tms-db
+    restart: always
+    env_file: .env
+    volumes:
+      - tms_pgdata:/var/lib/postgresql/data
+    networks:
+      - tms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tms-redis:
+    image: redis:7-alpine
+    container_name: tms-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - tms_redisdata:/data
+    networks:
+      - tms-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tms-back:
+    build: .
+    container_name: tms-back
+    restart: always
+    env_file: .env
+    depends_on:
+      tms-db:
+        condition: service_healthy
+      tms-redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://tms-db:5432/${POSTGRES_DB}
+      REDIS_HOST: tms-redis
+      REDIS_PORT: 6379
+      APP_CORS_ORIGIN: ${APP_URL}
+    networks:
+      - tms-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 3s
+      timeout: 1s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tms-front:
+    build:
+      context: ../rostelecom-tms-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: tms-front
+    restart: always
+    depends_on:
+      tms-back:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - tms-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  tms-network:
+    name: tms-network
+    driver: bridge
+
+volumes:
+  tms_pgdata:
+    name: tms-pgdata
+    driver: local
+  tms_redisdata:
+    name: tms-redisdata
+    driver: local

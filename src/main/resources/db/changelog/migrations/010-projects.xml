@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="010-projects" author="artyom">
+        <createTable tableName="projects">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="owner_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="projects"
+                baseColumnNames="owner_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_projects_owner_id"
+                onDelete="RESTRICT"/>
+    </changeSet>
+
+    <changeSet id="010-project-members" author="artyom">
+        <createTable tableName="project_members">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="added_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="project_members"
+                baseColumnNames="project_id"
+                referencedTableName="projects"
+                referencedColumnNames="id"
+                constraintName="fk_project_members_project_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="project_members"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_project_members_user_id"
+                onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                tableName="project_members"
+                columnNames="project_id, user_id"
+                constraintName="uk_project_members_project_user"/>
+    </changeSet>
+
+    <changeSet id="010-projects-indexes" author="artyom">
+        <createIndex indexName="idx_projects_owner_id" tableName="projects">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex indexName="idx_project_members_project_id" tableName="project_members">
+            <column name="project_id"/>
+        </createIndex>
+        <createIndex indexName="idx_project_members_user_id" tableName="project_members">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="010-plans-add-project-id" author="artyom">
+        <addColumn tableName="plans">
+            <column name="project_id" type="INT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="plans"
+                baseColumnNames="project_id"
+                referencedTableName="projects"
+                referencedColumnNames="id"
+                constraintName="fk_plans_project_id"
+                onDelete="SET NULL"/>
+
+        <createIndex indexName="idx_plans_project_id" tableName="plans">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="010-case-groups-add-project-id" author="artyom">
+        <addColumn tableName="case_groups">
+            <column name="project_id" type="INT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                baseTableName="case_groups"
+                baseColumnNames="project_id"
+                referencedTableName="projects"
+                referencedColumnNames="id"
+                constraintName="fk_case_groups_project_id"
+                onDelete="SET NULL"/>
+
+        <createIndex indexName="idx_case_groups_project_id" tableName="case_groups">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

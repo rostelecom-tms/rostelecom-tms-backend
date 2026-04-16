@@ -1,3 +1,37 @@
 spring:
   application:
     name: rostelecom-tms
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tms
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+  cache:
+    type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      repositories:
+        enabled: false
+
+server:
+  servlet:
+    context-path: /api
+
+app:
+  cors:
+    allowed-origin: ${APP_URL}
+  runs:
+    ingestion-token: ${RUNS_INGESTION_TOKEN:}

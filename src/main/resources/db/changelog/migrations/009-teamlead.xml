@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="009-seed-role-teamlead" author="artyom">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="user_roles"/>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM user_roles WHERE slug='teamlead'
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="user_roles">
+            <column name="name" value="teamlead"/>
+            <column name="slug" value="teamlead"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="009-users-add-can-create-plans" author="artyom">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="users" columnName="can_create_plans"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="users">
+            <column name="can_create_plans" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
