@@ -165,8 +165,11 @@ public class PlanService {
                     .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + cmd.projectId()));
             ensureProjectWriteAccess(project, caller);
             plan.setProject(project);
-        } else if (!RoleSlugs.ADMIN.equals(caller.getRole().getSlug())) {
-            throw new PlanCreationNotAllowedException("Plan must be created inside a project");
+        } else {
+            Project implicitProject = resolveImplicitProjectForPlanCreation(caller);
+            if (implicitProject != null) {
+                plan.setProject(implicitProject);
+            }
         }
 
         if (RoleSlugs.TEAMLEAD.equals(caller.getRole().getSlug())) {
@@ -403,5 +406,32 @@ public class PlanService {
             return;
         }
         throw new PlanAccessDeniedException("No access to manage project plans");
+    }
+
+    private Project resolveImplicitProjectForPlanCreation(User caller) {
+        if (caller == null) {
+            throw new PlanCreationNotAllowedException("Authentication required");
+        }
+
+        String slug = caller.getRole().getSlug();
+        if (RoleSlugs.ADMIN.equals(slug)) {
+            return null;
+        }
+
+        List<Project> accessibleProjects = RoleSlugs.TEAMLEAD.equals(slug)
+                ? projectRepository.findDistinctByOwnerIdOrMembersUserId(caller.getId(), caller.getId())
+                : projectRepository.findDistinctByMembersUserId(caller.getId());
+
+        if (accessibleProjects.isEmpty()) {
+            throw new PlanCreationNotAllowedException("No accessible project found for plan creation");
+        }
+
+        if (accessibleProjects.size() == 1) {
+            return accessibleProjects.get(0);
+        }
+
+        throw new PlanCreationNotAllowedException(
+                "Plan must be created inside a project. Provide projectId because multiple projects are accessible"
+        );
     }
 }
