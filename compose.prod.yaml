@@ -3,7 +3,7 @@
 
 services:
   tms-db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: tms-db
     restart: always
     env_file: .env
@@ -15,7 +15,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     logging:
       driver: "json-file"
       options:
@@ -31,11 +31,25 @@ services:
       - tms_redisdata:/data
     networks:
       - tms-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  tms-ollama:
+    image: ollama/ollama:latest
+    container_name: tms-ollama
+    restart: always
+    environment:
+      OLLAMA_LLM_MODEL: ${OLLAMA_LLM_MODEL:-qwen3:4b}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+    entrypoint: ["/bin/sh", "/opt/ollama-bootstrap.sh"]
+    volumes:
+      - tms_ollamadata:/root/.ollama
+      - ./ollama-bootstrap.sh:/opt/ollama-bootstrap.sh:ro
+    networks:
+      - tms-network
     logging:
       driver: "json-file"
       options:
@@ -51,7 +65,9 @@ services:
       tms-db:
         condition: service_healthy
       tms-redis:
-        condition: service_healthy
+        condition: service_started
+      tms-ollama:
+        condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://tms-db:5432/${POSTGRES_DB}
@@ -60,12 +76,6 @@ services:
       APP_CORS_ORIGIN: ${APP_URL}
     networks:
       - tms-network
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "8080"]
-      interval: 3s
-      timeout: 1s
-      retries: 3
-      start_period: 15s
     logging:
       driver: "json-file"
       options:
@@ -81,8 +91,7 @@ services:
     container_name: tms-front
     restart: always
     depends_on:
-      tms-back:
-        condition: service_healthy
+      - tms-back
     ports:
       - "80:80"
     networks:
@@ -104,4 +113,7 @@ volumes:
     driver: local
   tms_redisdata:
     name: tms-redisdata
+    driver: local
+  tms_ollamadata:
+    name: tms-ollamadata
     driver: local

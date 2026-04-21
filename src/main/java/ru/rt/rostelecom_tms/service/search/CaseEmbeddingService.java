@@ -36,7 +36,7 @@ public class CaseEmbeddingService {
 
     @Transactional
     public void index(int caseId, String providerOverride) {
-        Case testCase = caseRepository.findByIdWithSteps(caseId)
+        Case testCase = caseRepository.findOneById(caseId)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
 
         float[] vector = toFloatArray(embeddingClient.embed(buildCaseText(testCase), providerOverride));
@@ -83,12 +83,12 @@ public class CaseEmbeddingService {
     public List<SimilarCaseResult> findSimilar(int caseId, int limit, String providerOverride) {
         if (providerOverride != null) {
             log.warn(
-                "findSimilar with providerOverride={} for caseId={}. " +
-                "Stored vectors may have been indexed with a different provider. " +
-                "Results may be inaccurate if providers differ.",
-                providerOverride, caseId
+                    "findSimilar with providerOverride={} for caseId={}. " +
+                            "Stored vectors may have been indexed with a different provider. " +
+                            "Results may be inaccurate if providers differ.",
+                    providerOverride, caseId
             );
-            Case testCase = caseRepository.findByIdWithSteps(caseId)
+            Case testCase = caseRepository.findOneById(caseId)
                     .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
             float[] vector = toFloatArray(embeddingClient.embed(buildCaseText(testCase), providerOverride));
             return findSimilarByVector(vector, normalizeLimit(limit), caseId);
@@ -155,9 +155,9 @@ public class CaseEmbeddingService {
 
         PGvector pgv = new PGvector(vector);
         return jdbcTemplate.query(
-            sql,
-            (rs, rowNum) -> new SimilarCaseResult(rs.getInt("case_id"), rs.getDouble("score")),
-            pgv, excludeCaseId, excludeCaseId, pgv, SIMILARITY_THRESHOLD, pgv, limit
+                sql,
+                (rs, rowNum) -> new SimilarCaseResult(rs.getInt("case_id"), rs.getDouble("score")),
+                pgv, excludeCaseId, excludeCaseId, pgv, SIMILARITY_THRESHOLD, pgv, limit
         );
     }
 

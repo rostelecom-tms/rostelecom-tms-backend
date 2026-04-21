@@ -52,7 +52,7 @@ public class CaseRagService {
             String embeddingProvider,
             String llmProvider
     ) {
-        Case base = caseRepository.findByIdWithSteps(caseId)
+        Case base = caseRepository.findOneById(caseId)
                 .orElseThrow(() -> new CaseNotFoundException("Couldn't find case with id: " + caseId));
 
         List<CaseEmbeddingService.SimilarCaseResult> similar =
