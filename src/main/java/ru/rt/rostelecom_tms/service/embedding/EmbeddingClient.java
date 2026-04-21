@@ -37,7 +37,7 @@ public class EmbeddingClient {
     public List<Double> embed(String text, String providerOverride) {
         EmbeddingProvider provider = EmbeddingProvider.from(
                 providerOverride,
-                EmbeddingProvider.from(properties.getProvider(), EmbeddingProvider.OPENAI)
+            EmbeddingProvider.from(properties.getProvider(), EmbeddingProvider.OLLAMA)
         );
 
         EmbeddingProviderClient client = byProvider.get(provider);
@@ -68,7 +68,7 @@ public class EmbeddingClient {
     }
 
     public String getDefaultProvider() {
-        return EmbeddingProvider.from(properties.getProvider(), EmbeddingProvider.OPENAI).name().toLowerCase();
+        return EmbeddingProvider.from(properties.getProvider(), EmbeddingProvider.OLLAMA).name().toLowerCase();
     }
 
     public List<String> getSupportedProviders() {

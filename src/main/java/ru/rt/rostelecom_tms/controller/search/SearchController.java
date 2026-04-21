@@ -84,12 +84,13 @@ public class SearchController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/cases/reindex-all")
     public void reindexAllCases(
             @RequestParam(required = false) String provider
     ) {
         validateEmbeddingProvider(provider);
-        caseEmbeddingService.indexAll(provider);
+        caseEmbeddingService.indexAllAsync(provider);
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -105,12 +106,13 @@ public class SearchController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/defects/reindex-all")
     public void reindexAllDefects(
             @RequestParam(required = false) String provider
     ) {
         validateEmbeddingProvider(provider);
-        defectEmbeddingService.indexAll(provider);
+        defectEmbeddingService.indexAllAsync(provider);
     }
 
     private void validateEmbeddingProvider(String provider) {

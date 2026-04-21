@@ -23,6 +23,12 @@ public interface CaseRepository extends JpaRepository<Case, Integer> {
     @EntityGraph(attributePaths = {"caseSteps", "group", "tags"})
     Optional<Case> findOneById(Integer id);
 
+    @EntityGraph(attributePaths = {"caseSteps", "group", "tags"})
+    Optional<Case> findByIdWithSteps(Integer id);
+
+    @EntityGraph(attributePaths = {"caseSteps", "group", "tags"})
+    List<Case> findAllByIdIn(List<Integer> ids);
+
     @EntityGraph(attributePaths = {"group", "tags"})
     List<Case> findDistinctByPlansId(Integer planId);
 

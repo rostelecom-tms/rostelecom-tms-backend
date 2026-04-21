@@ -14,34 +14,71 @@ import ru.rt.rostelecom_tms.service.search.DefectEmbeddingService;
 @RequiredArgsConstructor
 public class EmbeddingIndexListener {
 
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+
     private final CaseEmbeddingService caseEmbeddingService;
     private final DefectEmbeddingService defectEmbeddingService;
 
-    @Async
+    @Async("embeddingTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCaseIndex(CaseIndexEvent event) {
-        try {
+        runWithRetry("case", event.caseId(), () -> {
             if (event.deleted()) {
                 caseEmbeddingService.delete(event.caseId());
             } else {
                 caseEmbeddingService.index(event.caseId());
             }
-        } catch (Exception e) {
-            log.error("Failed to index case {}: {}", event.caseId(), e.getMessage());
-        }
+        });
     }
 
-    @Async
+    @Async("embeddingTaskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onDefectIndex(DefectIndexEvent event) {
-        try {
+        runWithRetry("defect", event.defectId(), () -> {
             if (event.deleted()) {
                 defectEmbeddingService.delete(event.defectId());
             } else {
                 defectEmbeddingService.index(event.defectId());
             }
-        } catch (Exception e) {
-            log.error("Failed to index defect {}: {}", event.defectId(), e.getMessage());
+        });
+    }
+
+    private void runWithRetry(String entityType, int entityId, Runnable action) {
+        for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+            try {
+                action.run();
+                if (attempt > 1) {
+                    log.info(
+                            "Indexing {} {} succeeded on retry attempt {}/{}",
+                            entityType,
+                            entityId,
+                            attempt,
+                            MAX_RETRY_ATTEMPTS
+                    );
+                }
+                return;
+            } catch (Exception e) {
+                if (attempt == MAX_RETRY_ATTEMPTS) {
+                    log.error(
+                            "Failed to index {} {} after {}/{} attempts",
+                            entityType,
+                            entityId,
+                            attempt,
+                            MAX_RETRY_ATTEMPTS,
+                            e
+                    );
+                    return;
+                }
+
+                log.warn(
+                        "Failed to index {} {} on attempt {}/{}, retrying: {}",
+                        entityType,
+                        entityId,
+                        attempt,
+                        MAX_RETRY_ATTEMPTS,
+                        e.getMessage()
+                );
+            }
         }
     }
 }

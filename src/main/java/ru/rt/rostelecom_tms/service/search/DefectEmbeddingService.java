@@ -4,6 +4,7 @@ import com.pgvector.PGvector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.domain.cases.Defect;
@@ -12,6 +13,7 @@ import ru.rt.rostelecom_tms.repository.cases.DefectRepository;
 import ru.rt.rostelecom_tms.service.embedding.EmbeddingClient;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -52,6 +54,19 @@ public class DefectEmbeddingService {
     @Transactional
     public void indexAll(String providerOverride) {
         defectRepository.findAll().forEach(defect -> index(defect.getId(), providerOverride));
+    }
+
+    @Async("embeddingTaskExecutor")
+    public CompletableFuture<Void> indexAllAsync(String providerOverride) {
+        try {
+            log.info("Started defect embeddings reindex-all (providerOverride={})", providerOverride);
+            indexAll(providerOverride);
+            log.info("Completed defect embeddings reindex-all (providerOverride={})", providerOverride);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            log.error("Failed to reindex all defect embeddings", e);
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     @Transactional

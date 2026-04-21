@@ -25,7 +25,7 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
 
     @PostConstruct
     void init() {
-    client = RestClient.builder()
+        client = RestClient.builder()
                 .baseUrl("https://api.openai.com")
                 .build();
     }
@@ -38,7 +38,8 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
     @Override
     public String complete(String systemPrompt, String userPrompt) {
         if (!StringUtils.hasText(properties.getOpenaiApiKey())) {
-            throw new IllegalStateException("OPENAI_API_KEY is required for openai llm provider");
+            IllegalStateException cause = new IllegalStateException("OPENAI_API_KEY is required for openai llm provider");
+            throw new LlmProviderException(cause.getMessage(), cause);
         }
 
         try {
@@ -59,7 +60,8 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
 
             String content = response.path("choices").path(0).path("message").path("content").asText();
             if (content == null || content.isBlank()) {
-                throw new IllegalStateException("OpenAI returned empty completion");
+                IllegalStateException cause = new IllegalStateException("OpenAI returned empty completion");
+                throw new LlmProviderException(cause.getMessage(), cause);
             }
             return content;
         } catch (RestClientException e) {
