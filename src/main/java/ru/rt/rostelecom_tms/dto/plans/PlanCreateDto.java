@@ -1,7 +1,9 @@
 package ru.rt.rostelecom_tms.dto.plans;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import ru.rt.rostelecom_tms.util.json.FlexibleLocalDateDeserializer;
 
 import java.time.LocalDate;
 
@@ -12,8 +14,8 @@ public record PlanCreateDto(
         @NotBlank @Size(min = 1, max = 500) String name,
         String introduction,
         String approach,
-        LocalDate startDate,
-        LocalDate endDate,
+        @JsonDeserialize(using = FlexibleLocalDateDeserializer.class) LocalDate startDate,
+        @JsonDeserialize(using = FlexibleLocalDateDeserializer.class) LocalDate endDate,
         Integer responsibleUserId,
         Integer projectId
 ) {}
