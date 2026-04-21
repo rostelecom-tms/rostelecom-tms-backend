@@ -26,7 +26,7 @@ public class OpenAiEmbeddingProviderClient implements EmbeddingProviderClient {
 
     @PostConstruct
     void init() {
-    client = RestClient.builder()
+        client = RestClient.builder()
                 .baseUrl("https://api.openai.com")
                 .build();
     }
@@ -39,7 +39,8 @@ public class OpenAiEmbeddingProviderClient implements EmbeddingProviderClient {
     @Override
     public List<Double> embed(String text) {
         if (!StringUtils.hasText(properties.getOpenaiApiKey())) {
-            throw new IllegalStateException("OPENAI_API_KEY is required for openai embedding provider");
+            IllegalStateException cause = new IllegalStateException("OPENAI_API_KEY is required for openai embedding provider");
+            throw new EmbeddingProviderException(cause.getMessage(), cause);
         }
 
         try {
@@ -64,7 +65,8 @@ public class OpenAiEmbeddingProviderClient implements EmbeddingProviderClient {
 
     private List<Double> toDoubleList(JsonNode embeddingNode) {
         if (!embeddingNode.isArray() || embeddingNode.isEmpty()) {
-            throw new IllegalStateException("OpenAI returned empty embedding");
+            IllegalStateException cause = new IllegalStateException("OpenAI returned empty embedding");
+            throw new EmbeddingProviderException(cause.getMessage(), cause);
         }
 
         List<Double> vector = new ArrayList<>(embeddingNode.size());

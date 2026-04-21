@@ -25,7 +25,7 @@ public class OllamaEmbeddingProviderClient implements EmbeddingProviderClient {
 
     @PostConstruct
     void init() {
-    client = RestClient.builder()
+        client = RestClient.builder()
                 .baseUrl(properties.getOllamaBaseUrl())
                 .build();
     }

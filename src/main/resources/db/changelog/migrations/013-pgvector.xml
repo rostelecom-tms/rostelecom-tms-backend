@@ -2,6 +2,7 @@
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    logicalFilePath="db/changelog/migrations/011-pgvector.xml"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
 
@@ -14,7 +15,7 @@
             <column name="case_id" type="INT">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
-            <column name="embedding" type="vector(1536)">
+            <column name="embedding" type="vector(768)">
                 <constraints nullable="false"/>
             </column>
             <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()">
@@ -29,6 +30,11 @@
                 referencedColumnNames="id"
                 constraintName="fk_case_embeddings_case_id"
                 onDelete="CASCADE"/>
+
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_case_embeddings_hnsw
+            ON case_embeddings USING hnsw (embedding vector_cosine_ops)
+        </sql>
     </changeSet>
 
     <changeSet id="011-defect-embeddings" author="tms">
@@ -36,7 +42,7 @@
             <column name="defect_id" type="INT">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
-            <column name="embedding" type="vector(1536)">
+            <column name="embedding" type="vector(768)">
                 <constraints nullable="false"/>
             </column>
             <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()">
@@ -51,6 +57,11 @@
                 referencedColumnNames="id"
                 constraintName="fk_defect_embeddings_defect_id"
                 onDelete="CASCADE"/>
+
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_defect_embeddings_hnsw
+            ON defect_embeddings USING hnsw (embedding vector_cosine_ops)
+        </sql>
     </changeSet>
 
 </databaseChangeLog>

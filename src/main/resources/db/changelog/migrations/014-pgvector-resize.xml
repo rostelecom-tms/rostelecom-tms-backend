@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        logicalFilePath="db/changelog/migrations/012-pgvector-resize.xml"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+        <changeSet id="014-pgvector-resize" author="tms" runOnChange="false">
+                <sql>
+                        ALTER TABLE case_embeddings
+                        ALTER COLUMN embedding TYPE vector(768)
+                        USING subvector(embedding, 1, 768)::vector(768);
+
+                        ALTER TABLE defect_embeddings
+                        ALTER COLUMN embedding TYPE vector(768)
+                        USING subvector(embedding, 1, 768)::vector(768);
+                </sql>
+        </changeSet>
+
+</databaseChangeLog>

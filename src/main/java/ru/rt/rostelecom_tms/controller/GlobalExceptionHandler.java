@@ -10,6 +10,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyInPlanException;
@@ -84,12 +85,16 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({EmbeddingProviderException.class, LlmProviderException.class})
-    public ResponseEntity<ErrorResponse> handleAiProviderUnavailable(RuntimeException e) {
-        return new ResponseEntity<>(
-                new ErrorResponse(e.getMessage(), System.currentTimeMillis()),
-                HttpStatus.SERVICE_UNAVAILABLE
-        );
+        @ExceptionHandler(EmbeddingProviderException.class)
+        @ResponseStatus(HttpStatus.BAD_GATEWAY)
+        public ErrorResponse handleEmbeddingProviderException(EmbeddingProviderException ex) {
+                return new ErrorResponse("Embedding provider unavailable: " + ex.getMessage(), System.currentTimeMillis());
+        }
+
+        @ExceptionHandler(LlmProviderException.class)
+        @ResponseStatus(HttpStatus.BAD_GATEWAY)
+        public ErrorResponse handleLlmProviderException(LlmProviderException ex) {
+                return new ErrorResponse("LLM provider unavailable: " + ex.getMessage(), System.currentTimeMillis());
     }
 
     @ExceptionHandler(UserRoleNotAllowedException.class)

@@ -33,5 +33,15 @@ server:
 app:
   cors:
     allowed-origin: ${APP_URL}
+  embedding:
+    provider: ollama
+    dimensions: 768
+    ollama-base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    ollama-model: nomic-embed-text
+  llm:
+    provider: ollama
+    ollama-base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    ollama-model: qwen3:4b
+    ollama-think: false
   runs:
     ingestion-token: ${RUNS_INGESTION_TOKEN:}
