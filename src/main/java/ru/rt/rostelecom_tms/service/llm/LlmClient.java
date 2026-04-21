@@ -37,7 +37,7 @@ public class LlmClient {
     public String complete(String systemPrompt, String userPrompt, String providerOverride) {
         LlmProvider provider = LlmProvider.from(
                 providerOverride,
-                LlmProvider.from(properties.getProvider(), LlmProvider.OPENAI)
+            LlmProvider.from(properties.getProvider(), LlmProvider.OLLAMA)
         );
 
         LlmProviderClient client = byProvider.get(provider);

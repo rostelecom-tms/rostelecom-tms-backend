@@ -23,7 +23,7 @@ public class OllamaLlmProviderClient implements LlmProviderClient {
 
     @PostConstruct
     void init() {
-    client = RestClient.builder()
+        client = RestClient.builder()
                 .baseUrl(properties.getOllamaBaseUrl())
                 .build();
     }

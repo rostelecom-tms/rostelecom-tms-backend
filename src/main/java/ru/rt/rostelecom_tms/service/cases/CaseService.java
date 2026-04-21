@@ -1,6 +1,7 @@
 package ru.rt.rostelecom_tms.service.cases;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.cases.exceptions.CaseNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.events.CaseIndexEvent;
 import ru.rt.rostelecom_tms.repository.cases.CaseRepository;
 import ru.rt.rostelecom_tms.repository.cases.CaseTagRepository;
 import ru.rt.rostelecom_tms.repository.projects.ProjectMemberRepository;
@@ -36,6 +38,7 @@ public class CaseService {
     private final CaseTagRepository caseTagRepository;
     private final CaseGroupService caseGroupService;
     private final ProjectMemberRepository projectMemberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public record CreateCaseCommand(
             String title,
@@ -145,8 +148,10 @@ public class CaseService {
             List<CaseStep> steps = buildSteps(cmd.steps(), saved);
             saved.getCaseSteps().clear();
             saved.getCaseSteps().addAll(steps);
-            caseRepository.save(saved);
+            saved = caseRepository.save(saved);
         }
+
+        eventPublisher.publishEvent(CaseIndexEvent.upsert(saved.getId()));
 
         return saved;
     }
@@ -196,6 +201,7 @@ public class CaseService {
         }
 
         caseRepository.save(existingCase);
+        eventPublisher.publishEvent(CaseIndexEvent.upsert(id));
     }
 
     @Transactional
@@ -208,6 +214,7 @@ public class CaseService {
         Case testCase = findOne(id, caller);
         ensureWriteAccess(testCase.getGroup(), caller);
         caseRepository.deleteById(id);
+        eventPublisher.publishEvent(CaseIndexEvent.delete(id));
     }
 
     private void ensureCaseTitleIsUnique(String title, Integer groupId, Case currentCase) {

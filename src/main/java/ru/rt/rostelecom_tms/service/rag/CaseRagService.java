@@ -35,7 +35,7 @@ public class CaseRagService {
                 .map(CaseEmbeddingService.SimilarCaseResult::caseId)
                 .toList();
 
-        Map<Integer, Case> related = caseRepository.findAllById(similarIds).stream()
+        Map<Integer, Case> related = caseRepository.findAllByIdIn(similarIds).stream()
                 .collect(Collectors.toMap(Case::getId, c -> c));
 
         String context = buildContext(description, similar, related);
@@ -62,7 +62,7 @@ public class CaseRagService {
                 .map(CaseEmbeddingService.SimilarCaseResult::caseId)
                 .toList();
 
-        Map<Integer, Case> related = caseRepository.findAllById(similarIds).stream()
+        Map<Integer, Case> related = caseRepository.findAllByIdIn(similarIds).stream()
                 .collect(Collectors.toMap(Case::getId, c -> c));
 
 
