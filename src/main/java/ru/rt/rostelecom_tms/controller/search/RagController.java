@@ -14,10 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.rt.rostelecom_tms.dto.rag.CaseSuggestByTextRequest;
 import ru.rt.rostelecom_tms.dto.rag.CaseSuggestRequest;
 import ru.rt.rostelecom_tms.dto.rag.DefectAnalysisRequest;
+import ru.rt.rostelecom_tms.dto.rag.LogsAnalysisRequest;
 import ru.rt.rostelecom_tms.service.embedding.EmbeddingProvider;
 import ru.rt.rostelecom_tms.service.llm.LlmProvider;
 import ru.rt.rostelecom_tms.service.rag.CaseRagService;
 import ru.rt.rostelecom_tms.service.rag.DefectRagService;
+import ru.rt.rostelecom_tms.service.rag.LogsAnalysisService;
 
 @RestController
 @RequestMapping("/rag")
@@ -26,6 +28,7 @@ public class RagController {
 
     private final DefectRagService defectRagService;
     private final CaseRagService caseRagService;
+    private final LogsAnalysisService logsAnalysisService;
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
@@ -67,6 +70,16 @@ public class RagController {
                 req.getEmbeddingProvider(), req.getLlmProvider()
         );
     }
+
+        @SecurityRequirement(name = "bearerAuth")
+        @PreAuthorize("isAuthenticated()")
+        @PostMapping("/logs/analysis")
+        public LogsAnalysisService.LogsAnalysisResponse analyzeLogs(
+            @RequestBody @Valid LogsAnalysisRequest req
+        ) {
+        validateProviders(null, req.getLlmProvider());
+        return logsAnalysisService.analyze(req.getPrompt(), req.getLlmProvider());
+        }
 
     private void validateProviders(String embeddingProvider, String llmProvider) {
         if (embeddingProvider != null) {
