@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 public class DefectEmbeddingService {
 
     private static final int MAX_TOP_K = 10;
-    private static final double SIMILARITY_THRESHOLD = 0.80;
 
     private final EmbeddingClient embeddingClient;
     private final JdbcTemplate jdbcTemplate;
@@ -78,6 +77,8 @@ public class DefectEmbeddingService {
     }
 
     public List<SimilarDefectResult> findSimilar(int defectId, boolean onlySolved, int limit, String providerOverride) {
+        int normalizedLimit = normalizeLimit(limit);
+
         if (providerOverride != null) {
             log.warn(
                 "findSimilar with providerOverride={} for defectId={}. " +
@@ -88,15 +89,45 @@ public class DefectEmbeddingService {
             Defect defect = defectRepository.findById(defectId)
                     .orElseThrow(() -> new DefectNotFoundException("Couldn't find defect with id: " + defectId));
             float[] vector = toFloatArray(embeddingClient.embed(buildDefectText(defect), providerOverride));
-            return findSimilarByVector(vector, defectId, onlySolved, normalizeLimit(limit));
+                return findSimilarByVector(vector, defectId, onlySolved, normalizedLimit);
         }
 
         float[] storedVector = loadStoredVector(defectId);
         if (storedVector == null) {
-            log.warn("Defect {} has no stored embedding. Run reindex first.", defectId);
-            return List.of();
+            Defect defect = defectRepository.findById(defectId)
+                    .orElseThrow(() -> new DefectNotFoundException("Couldn't find defect with id: " + defectId));
+
+            log.warn("Defect {} has no stored embedding. Attempting on-demand indexing.", defectId);
+            try {
+                index(defectId, null);
+                storedVector = loadStoredVector(defectId);
+            } catch (Exception e) {
+                log.warn("On-demand indexing failed for defect {}: {}", defectId, e.getMessage());
+            }
+
+            if (storedVector == null) {
+                log.warn("Falling back to on-the-fly vectorization for defect {}.", defectId);
+                storedVector = toFloatArray(embeddingClient.embed(buildDefectText(defect)));
+            }
         }
-        return findSimilarByVector(storedVector, defectId, onlySolved, normalizeLimit(limit));
+
+        List<SimilarDefectResult> results = findSimilarByVector(storedVector, defectId, onlySolved, normalizedLimit);
+        if (!results.isEmpty()) {
+            return results;
+        }
+
+        log.warn("No similar defects found for {}. Attempting full reindex and retry.", defectId);
+        try {
+            indexAll(null);
+            float[] refreshedVector = loadStoredVector(defectId);
+            if (refreshedVector == null) {
+                refreshedVector = storedVector;
+            }
+            return findSimilarByVector(refreshedVector, defectId, onlySolved, normalizedLimit);
+        } catch (Exception e) {
+            log.warn("Full reindex fallback failed for defect {}: {}", defectId, e.getMessage());
+            return results;
+        }
     }
 
     float[] loadStoredVector(int defectId) {
@@ -127,7 +158,6 @@ public class DefectEmbeddingService {
                 JOIN defects d ON d.id = de.defect_id
                 WHERE de.defect_id <> ?
                   AND (? = FALSE OR d.is_solved = TRUE)
-                  AND (1 - (de.embedding <=> ?::vector)) >= ?
                 ORDER BY de.embedding <=> ?::vector
                 LIMIT ?
                 """;
@@ -141,7 +171,7 @@ public class DefectEmbeddingService {
                         rs.getBoolean("is_solved"),
                         rs.getDouble("score")
                 ),
-                pgv, excludeDefectId, onlySolved, pgv, SIMILARITY_THRESHOLD, pgv, limit
+                pgv, excludeDefectId, onlySolved, pgv, limit
         );
     }
 

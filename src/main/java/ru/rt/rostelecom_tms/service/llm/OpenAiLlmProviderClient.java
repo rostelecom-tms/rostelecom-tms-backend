@@ -1,6 +1,5 @@
 package ru.rt.rostelecom_tms.service.llm;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,7 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
         }
 
         try {
-            JsonNode response = client.post()
+            Map<String, Object> response = client.post()
                     .uri("/v1/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + properties.getOpenaiApiKey())
@@ -56,9 +55,9 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
                             )
                     ))
                     .retrieve()
-                    .body(JsonNode.class);
+                                .body(Map.class);
 
-            String content = response.path("choices").path(0).path("message").path("content").asText();
+                            String content = readChatContent(response);
             if (content == null || content.isBlank()) {
                 IllegalStateException cause = new IllegalStateException("OpenAI returned empty completion");
                 throw new LlmProviderException(cause.getMessage(), cause);
@@ -68,6 +67,26 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
             log.error("OpenAI LLM request failed: {}", e.getMessage());
             throw new LlmProviderException("OpenAI LLM provider unavailable: " + e.getMessage(), e);
         }
+    }
+
+    private String readChatContent(Map<String, Object> response) {
+        Object choicesRaw = response.get("choices");
+        if (!(choicesRaw instanceof List<?> choices) || choices.isEmpty()) {
+            return null;
+        }
+
+        Object firstChoice = choices.get(0);
+        if (!(firstChoice instanceof Map<?, ?> firstChoiceMap)) {
+            return null;
+        }
+
+        Object messageRaw = firstChoiceMap.get("message");
+        if (!(messageRaw instanceof Map<?, ?> messageMap)) {
+            return null;
+        }
+
+        Object contentRaw = messageMap.get("content");
+        return contentRaw == null ? null : String.valueOf(contentRaw);
     }
 }
 
