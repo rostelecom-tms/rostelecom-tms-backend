@@ -1,6 +1,5 @@
 package ru.rt.rostelecom_tms.service.embedding;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,7 @@ public class OpenAiEmbeddingProviderClient implements EmbeddingProviderClient {
         }
 
         try {
-            JsonNode response = client.post()
+            Map<String, Object> response = client.post()
                     .uri("/v1/embeddings")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + properties.getOpenaiApiKey())
@@ -53,9 +52,9 @@ public class OpenAiEmbeddingProviderClient implements EmbeddingProviderClient {
                             "input", text
                     ))
                     .retrieve()
-                    .body(JsonNode.class);
+                    .body(Map.class);
 
-            JsonNode embedding = response.path("data").path(0).path("embedding");
+            Object embedding = readEmbedding(response);
             return toDoubleList(embedding);
         } catch (RestClientException e) {
             log.error("OpenAI embedding request failed: {}", e.getMessage());
@@ -63,14 +62,40 @@ public class OpenAiEmbeddingProviderClient implements EmbeddingProviderClient {
         }
     }
 
-    private List<Double> toDoubleList(JsonNode embeddingNode) {
-        if (!embeddingNode.isArray() || embeddingNode.isEmpty()) {
+    private List<Double> toDoubleList(Object embeddingRaw) {
+        if (!(embeddingRaw instanceof List<?> embeddingList) || embeddingList.isEmpty()) {
             IllegalStateException cause = new IllegalStateException("OpenAI returned empty embedding");
             throw new EmbeddingProviderException(cause.getMessage(), cause);
         }
 
-        List<Double> vector = new ArrayList<>(embeddingNode.size());
-        embeddingNode.forEach(value -> vector.add(value.asDouble()));
+        List<Double> vector = new ArrayList<>(embeddingList.size());
+        embeddingList.forEach(value -> {
+            if (value instanceof Number number) {
+                vector.add(number.doubleValue());
+            }
+        });
+
+        if (vector.isEmpty()) {
+            IllegalStateException cause = new IllegalStateException("OpenAI returned invalid embedding values");
+            throw new EmbeddingProviderException(cause.getMessage(), cause);
+        }
+
         return vector;
+    }
+
+    private Object readEmbedding(Map<String, Object> response) {
+        Object dataRaw = response.get("data");
+        if (!(dataRaw instanceof List<?> dataList) || dataList.isEmpty()) {
+            IllegalStateException cause = new IllegalStateException("OpenAI returned empty embedding payload");
+            throw new EmbeddingProviderException(cause.getMessage(), cause);
+        }
+
+        Object first = dataList.get(0);
+        if (!(first instanceof Map<?, ?> firstMap)) {
+            IllegalStateException cause = new IllegalStateException("OpenAI returned invalid embedding payload");
+            throw new EmbeddingProviderException(cause.getMessage(), cause);
+        }
+
+        return firstMap.get("embedding");
     }
 }

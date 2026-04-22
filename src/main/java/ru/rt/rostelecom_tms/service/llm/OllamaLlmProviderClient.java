@@ -1,6 +1,5 @@
 package ru.rt.rostelecom_tms.service.llm;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,20 +35,24 @@ public class OllamaLlmProviderClient implements LlmProviderClient {
     @Override
     public String complete(String systemPrompt, String userPrompt) {
         try {
-            JsonNode response = client.post()
+            Map<String, Object> response = client.post()
                     .uri("/api/generate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
                             "model", properties.getOllamaModel(),
                             "system", systemPrompt,
                             "prompt", userPrompt,
-                            "think", properties.isOllamaThink(),
-                            "stream", false
+                            "think", false,
+                            "stream", false,
+                            "options", Map.of(
+                                "temperature", 0.1,
+                                "num_predict", 220
+                            )
                     ))
                     .retrieve()
-                    .body(JsonNode.class);
+                    .body(Map.class);
 
-            String content = response.path("response").asText();
+            String content = asString(response.get("response"));
             if (content == null || content.isBlank()) {
                 throw new IllegalStateException("Ollama returned empty completion");
             }
@@ -58,5 +61,9 @@ public class OllamaLlmProviderClient implements LlmProviderClient {
             log.error("Ollama LLM request failed: {}", e.getMessage());
             throw new LlmProviderException("Ollama LLM provider unavailable: " + e.getMessage(), e);
         }
+    }
+
+    private String asString(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

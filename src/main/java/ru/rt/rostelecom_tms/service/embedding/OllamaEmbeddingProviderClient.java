@@ -1,6 +1,5 @@
 package ru.rt.rostelecom_tms.service.embedding;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,7 @@ public class OllamaEmbeddingProviderClient implements EmbeddingProviderClient {
     @Override
     public List<Double> embed(String text) {
         try {
-            JsonNode response = client.post()
+            Map<String, Object> response = client.post()
                     .uri("/api/embed")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
@@ -46,9 +45,14 @@ public class OllamaEmbeddingProviderClient implements EmbeddingProviderClient {
                             "input", text
                     ))
                     .retrieve()
-                    .body(JsonNode.class);
+                    .body(Map.class);
 
-            JsonNode embedding = response.path("embeddings").path(0);
+            Object embeddingsRaw = response.get("embeddings");
+            if (!(embeddingsRaw instanceof List<?> embeddings) || embeddings.isEmpty()) {
+                throw new IllegalStateException("Ollama returned empty embedding");
+            }
+
+            Object embedding = embeddings.get(0);
             return toDoubleList(embedding);
         } catch (RestClientException e) {
             log.error("Ollama embedding request failed: {}", e.getMessage());
@@ -56,13 +60,22 @@ public class OllamaEmbeddingProviderClient implements EmbeddingProviderClient {
         }
     }
 
-    private List<Double> toDoubleList(JsonNode embeddingNode) {
-        if (!embeddingNode.isArray() || embeddingNode.isEmpty()) {
+    private List<Double> toDoubleList(Object embeddingRaw) {
+        if (!(embeddingRaw instanceof List<?> embeddingList) || embeddingList.isEmpty()) {
             throw new IllegalStateException("Ollama returned empty embedding");
         }
 
-        List<Double> vector = new ArrayList<>(embeddingNode.size());
-        embeddingNode.forEach(value -> vector.add(value.asDouble()));
+        List<Double> vector = new ArrayList<>(embeddingList.size());
+        embeddingList.forEach(value -> {
+            if (value instanceof Number number) {
+                vector.add(number.doubleValue());
+            }
+        });
+
+        if (vector.isEmpty()) {
+            throw new IllegalStateException("Ollama returned invalid embedding values");
+        }
+
         return vector;
     }
 }
