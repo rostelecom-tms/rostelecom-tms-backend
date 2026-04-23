@@ -4,5 +4,5 @@ public interface LlmProviderClient {
 
     LlmProvider provider();
 
-    String complete(String systemPrompt, String userPrompt);
+    String complete(String systemPrompt, String userPrompt, String modelOverride);
 }

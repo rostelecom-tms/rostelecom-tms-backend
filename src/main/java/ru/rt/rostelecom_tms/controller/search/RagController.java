@@ -5,10 +5,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import ru.rt.rostelecom_tms.dto.rag.CaseSuggestByTextRequest;
@@ -20,6 +22,8 @@ import ru.rt.rostelecom_tms.service.llm.LlmProvider;
 import ru.rt.rostelecom_tms.service.rag.CaseRagService;
 import ru.rt.rostelecom_tms.service.rag.DefectRagService;
 import ru.rt.rostelecom_tms.service.rag.LogsAnalysisService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/rag")
@@ -78,7 +82,22 @@ public class RagController {
             @RequestBody @Valid LogsAnalysisRequest req
         ) {
         validateProviders(null, req.getLlmProvider());
-        return logsAnalysisService.analyze(req.getPrompt(), req.getLlmProvider());
+            return logsAnalysisService.analyze(
+                req.getDefectId(),
+                req.getPrompt(),
+                req.getLlmProvider(),
+                req.getLlmModel(),
+                req.isSaveHistory()
+            );
+            }
+
+            @SecurityRequirement(name = "bearerAuth")
+            @PreAuthorize("isAuthenticated()")
+            @GetMapping("/logs/history")
+            public List<LogsAnalysisService.LogsAnalysisHistoryItem> logsHistory(
+                @RequestParam Integer defectId
+            ) {
+            return logsAnalysisService.history(defectId);
         }
 
     private void validateProviders(String embeddingProvider, String llmProvider) {
