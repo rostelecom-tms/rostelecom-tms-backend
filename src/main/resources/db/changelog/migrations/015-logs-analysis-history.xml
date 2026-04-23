@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        logicalFilePath="db/changelog/migrations/015-logs-analysis-history.xml"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="015-logs-analysis-history" author="tms" runOnChange="false">
+        <createTable tableName="logs_analysis_history">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="defect_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="logs_text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="answer_text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="llm_provider" type="VARCHAR(40)"/>
+            <column name="llm_model" type="VARCHAR(120)"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="logs_analysis_history"
+                baseColumnNames="defect_id"
+                referencedTableName="defects"
+                referencedColumnNames="id"
+                constraintName="fk_logs_analysis_history_defect"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="logs_analysis_history" indexName="idx_logs_analysis_history_defect_created_at">
+            <column name="defect_id"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

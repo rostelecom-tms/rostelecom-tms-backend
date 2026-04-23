@@ -31,10 +31,14 @@ public class LlmClient {
     }
 
     public String complete(String systemPrompt, String userPrompt) {
-        return complete(systemPrompt, userPrompt, null);
+        return complete(systemPrompt, userPrompt, null, null);
     }
 
     public String complete(String systemPrompt, String userPrompt, String providerOverride) {
+        return complete(systemPrompt, userPrompt, providerOverride, null);
+    }
+
+    public String complete(String systemPrompt, String userPrompt, String providerOverride, String modelOverride) {
         LlmProvider provider = LlmProvider.from(
                 providerOverride,
             LlmProvider.from(properties.getProvider(), LlmProvider.OLLAMA)
@@ -45,6 +49,6 @@ public class LlmClient {
             throw new IllegalStateException("No llm client configured for provider: " + provider);
         }
 
-        return client.complete(systemPrompt, userPrompt);
+        return client.complete(systemPrompt, userPrompt, modelOverride);
     }
 }

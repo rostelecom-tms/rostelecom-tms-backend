@@ -16,7 +16,7 @@ public class ThirdAiLlmProviderClient implements LlmProviderClient {
     }
 
     @Override
-    public String complete(String systemPrompt, String userPrompt) {
+    public String complete(String systemPrompt, String userPrompt, String modelOverride) {
         throw new UnsupportedOperationException(
                 "THIRD_AI LLM provider scaffold is ready but integration is not implemented yet. Configure app.llm.third-ai-* and add API call implementation in ThirdAiLlmProviderClient"
                         + " (baseUrl=" + properties.getThirdAiBaseUrl() + ", model=" + properties.getThirdAiModel() + ")"

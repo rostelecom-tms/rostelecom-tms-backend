@@ -19,6 +19,7 @@
     <include file="db/changelog/migrations/012-case-tags.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/013-pgvector.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/migrations/014-pgvector-resize.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/migrations/015-logs-analysis-history.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>
 
