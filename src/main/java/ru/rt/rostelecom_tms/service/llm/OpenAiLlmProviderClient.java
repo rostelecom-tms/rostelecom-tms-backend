@@ -35,11 +35,13 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
     }
 
     @Override
-    public String complete(String systemPrompt, String userPrompt) {
+    public String complete(String systemPrompt, String userPrompt, String modelOverride) {
         if (!StringUtils.hasText(properties.getOpenaiApiKey())) {
             IllegalStateException cause = new IllegalStateException("OPENAI_API_KEY is required for openai llm provider");
             throw new LlmProviderException(cause.getMessage(), cause);
         }
+
+        String model = StringUtils.hasText(modelOverride) ? modelOverride : properties.getOpenaiModel();
 
         try {
             Map<String, Object> response = client.post()
@@ -47,7 +49,7 @@ public class OpenAiLlmProviderClient implements LlmProviderClient {
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + properties.getOpenaiApiKey())
                     .body(Map.of(
-                            "model", properties.getOpenaiModel(),
+                            "model", model,
                             "temperature", 0.2,
                             "messages", List.of(
                                     Map.of("role", "system", "content", systemPrompt),

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import ru.rt.rostelecom_tms.config.LlmProperties;
@@ -33,13 +34,14 @@ public class OllamaLlmProviderClient implements LlmProviderClient {
     }
 
     @Override
-    public String complete(String systemPrompt, String userPrompt) {
+    public String complete(String systemPrompt, String userPrompt, String modelOverride) {
+        String model = StringUtils.hasText(modelOverride) ? modelOverride : properties.getOllamaModel();
         try {
             Map<String, Object> response = client.post()
                     .uri("/api/generate")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
-                            "model", properties.getOllamaModel(),
+                            "model", model,
                             "system", systemPrompt,
                             "prompt", userPrompt,
                             "think", false,
