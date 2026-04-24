@@ -25,6 +25,8 @@ import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanCreationNotAllowedException;
 import ru.rt.rostelecom_tms.domain.plans.exceptions.PlanNotFoundException;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAccessDeniedException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAccessRequestAlreadyExistsException;
+import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAccessRequestNotFoundException;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberAlreadyExistsException;
 import ru.rt.rostelecom_tms.domain.projects.exceptions.ProjectMemberNotFoundException;
@@ -52,7 +54,8 @@ public class GlobalExceptionHandler {
             UserRoleNotFoundException.class,
             PlanNotFoundException.class,
             ProjectNotFoundException.class,
-            ProjectMemberNotFoundException.class
+            ProjectMemberNotFoundException.class,
+            ProjectAccessRequestNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException e) {
         return new ResponseEntity<>(
@@ -68,7 +71,8 @@ public class GlobalExceptionHandler {
             CaseGroupNotDeletableException.class,
             PlanAlreadyExistsException.class,
             ProjectAlreadyExistsException.class,
-            ProjectMemberAlreadyExistsException.class
+            ProjectMemberAlreadyExistsException.class,
+            ProjectAccessRequestAlreadyExistsException.class
     })
     public ResponseEntity<ErrorResponse> handleConflict(RuntimeException e) {
         return new ResponseEntity<>(
