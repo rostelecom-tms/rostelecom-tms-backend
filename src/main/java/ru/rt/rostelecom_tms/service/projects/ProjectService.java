@@ -133,7 +133,7 @@ public class ProjectService {
     public void addMember(int projectId, int userId, User caller) {
         Project project = projectRepository.findOneById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + projectId));
-        checkWriteAccess(project, caller);
+        checkManageMembersAccess(project, caller);
 
         if (projectMemberRepository.existsByProjectIdAndUserId(projectId, userId)) {
             throw new ProjectMemberAlreadyExistsException(
@@ -161,7 +161,7 @@ public class ProjectService {
     public void removeMember(int projectId, int userId, User caller) {
         Project project = projectRepository.findOneById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Couldn't find project with id: " + projectId));
-        checkWriteAccess(project, caller);
+        checkManageMembersAccess(project, caller);
 
         ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new ProjectMemberNotFoundException(
@@ -237,5 +237,26 @@ public class ProjectService {
             return;
         }
         throw new ProjectAccessDeniedException("Users do not have write access to projects");
+    }
+
+    private void checkManageMembersAccess(Project project, User caller) {
+        if (caller == null) {
+            throw new ProjectAccessDeniedException("Authentication required");
+        }
+
+        String slug = caller.getRole().getSlug();
+        if (RoleSlugs.ADMIN.equals(slug)) {
+            return;
+        }
+
+        if (RoleSlugs.TEAMLEAD.equals(slug)) {
+            boolean isOwner = project.getOwner().getId().equals(caller.getId());
+            if (!isOwner) {
+                throw new ProjectAccessDeniedException("Teamlead can only manage members in owned projects");
+            }
+            return;
+        }
+
+        throw new ProjectAccessDeniedException("Users cannot manage project members");
     }
 }

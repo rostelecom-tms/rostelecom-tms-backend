@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.dto.users.UserCreateDto;
 import ru.rt.rostelecom_tms.dto.users.UserResponseDto;
 import ru.rt.rostelecom_tms.dto.users.UserUpdateDto;
@@ -28,12 +30,14 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final CurrentUserResolver currentUserResolver;
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEAMLEAD', 'USER')")
     @GetMapping()
     public List<UserResponseDto> getUsers() {
-        return userService.findAll().stream().map(UserMapper::toDto).toList();
+        User caller = currentUserResolver.resolveOrThrow();
+        return userService.findAll(caller).stream().map(UserMapper::toDto).toList();
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -65,6 +69,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable int id) {
-        userService.delete(id);
+        User caller = currentUserResolver.resolveOrThrow();
+        userService.delete(id, caller);
     }
 }
