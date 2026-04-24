@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="016-project-access-requests" author="copilot">
+        <createTable tableName="project_access_requests">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requester_user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="approver_user_id" type="INT"/>
+            <column name="destination" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(32)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="TEXT"/>
+            <column name="decision_comment" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed_at" type="TIMESTAMP"/>
+            <column name="processed_by_user_id" type="INT"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="project_access_requests"
+                baseColumnNames="project_id"
+                referencedTableName="projects"
+                referencedColumnNames="id"
+                constraintName="fk_project_access_requests_project_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="project_access_requests"
+                baseColumnNames="requester_user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_project_access_requests_requester_user_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="project_access_requests"
+                baseColumnNames="approver_user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_project_access_requests_approver_user_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="project_access_requests"
+                baseColumnNames="processed_by_user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_project_access_requests_processed_by_user_id"
+                onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="016-project-access-requests-indexes" author="copilot">
+        <createIndex indexName="idx_project_access_requests_project_id" tableName="project_access_requests">
+            <column name="project_id"/>
+        </createIndex>
+        <createIndex indexName="idx_project_access_requests_requester_user_id" tableName="project_access_requests">
+            <column name="requester_user_id"/>
+        </createIndex>
+        <createIndex indexName="idx_project_access_requests_approver_user_id" tableName="project_access_requests">
+            <column name="approver_user_id"/>
+        </createIndex>
+        <createIndex indexName="idx_project_access_requests_status" tableName="project_access_requests">
+            <column name="status"/>
+        </createIndex>
+        <createIndex indexName="idx_project_access_requests_destination" tableName="project_access_requests">
+            <column name="destination"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

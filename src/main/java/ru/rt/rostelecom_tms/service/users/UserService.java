@@ -7,16 +7,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.config.cache.CacheNames;
+import ru.rt.rostelecom_tms.domain.projects.Project;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.domain.users.UserRole;
 import ru.rt.rostelecom_tms.domain.users.RoleSlugs;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotAllowedException;
+import ru.rt.rostelecom_tms.repository.projects.ProjectRepository;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.Comparator;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,14 +34,74 @@ public class UserService {
 
     private final UserRoleService userRoleService;
 
+    private final ProjectRepository projectRepository;
+
     public record RegisterUserCommand(String email, String username, String password, String roleSlug, boolean canCreatePlans) {
     }
 
     public record UpdateUserCommand(Integer roleId, Boolean canCreatePlans) {
     }
 
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<User> findAll(User caller) {
+        if (caller == null) {
+            throw new UserRoleNotAllowedException("Authentication required");
+        }
+
+        String slug = caller.getRole().getSlug();
+        if (RoleSlugs.ADMIN.equals(slug)) {
+            return userRepository.findAll();
+        }
+
+        if (!RoleSlugs.TEAMLEAD.equals(slug) && !RoleSlugs.USER.equals(slug)) {
+            throw new UserRoleNotAllowedException("Role is not allowed to view users");
+        }
+
+        List<Project> accessibleProjects = RoleSlugs.TEAMLEAD.equals(slug)
+                ? projectRepository.findDistinctByOwnerIdOrMembersUserId(caller.getId(), caller.getId())
+                : projectRepository.findDistinctByMembersUserId(caller.getId());
+
+        Set<Integer> visibleUserIds = new LinkedHashSet<>();
+
+        for (Project project : accessibleProjects) {
+            if (project.getOwner() != null && project.getOwner().getId() != null) {
+                visibleUserIds.add(project.getOwner().getId());
+            }
+            for (var member : project.getMembers()) {
+                if (member.getUser() != null && member.getUser().getId() != null) {
+                    visibleUserIds.add(member.getUser().getId());
+                }
+            }
+        }
+
+            List<User> overlapUsers = userRepository.findAllById(visibleUserIds)
+                .stream()
+                .filter(user -> {
+                    String role = user.getRole().getSlug();
+                    return RoleSlugs.ADMIN.equals(role) || RoleSlugs.TEAMLEAD.equals(role);
+                })
+                .toList();
+
+            if (RoleSlugs.USER.equals(slug)) {
+                return overlapUsers.stream()
+                    .sorted(Comparator.comparing(User::getId))
+                    .toList();
+            }
+
+            Set<Integer> teamleadIds = userRepository.findByRole_Slug(RoleSlugs.TEAMLEAD)
+                .stream()
+                .map(User::getId)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+
+            List<User> allTeamleads = userRepository.findAllById(teamleadIds);
+
+            Set<Integer> resultIds = new LinkedHashSet<>();
+            overlapUsers.stream().map(User::getId).forEach(resultIds::add);
+            allTeamleads.stream().map(User::getId).forEach(resultIds::add);
+
+            return userRepository.findAllById(resultIds)
+                .stream()
+                .sorted(Comparator.comparing(User::getId))
+                .toList();
     }
 
     public User findOne(int id) {
@@ -82,8 +147,16 @@ public class UserService {
             @CacheEvict(value = CacheNames.RUNS_PAGE, allEntries = true),
             @CacheEvict(value = CacheNames.DASHBOARD, allEntries = true)
     })
-    public void delete(int id) {
+    public void delete(int id, User caller) {
+        if (caller != null && caller.getId() != null && caller.getId() == id) {
+            throw new UserRoleNotAllowedException("Self-deletion is not allowed");
+        }
+
         User user = findOne(id);
+        if (RoleSlugs.ADMIN.equals(user.getRole().getSlug())) {
+            throw new UserRoleNotAllowedException("Deleting admin users is not allowed");
+        }
+
         if (RoleSlugs.TEAMLEAD.equals(user.getRole().getSlug())
                 && userRepository.countByRole_Slug(RoleSlugs.TEAMLEAD) <= 1) {
             throw new UserRoleNotAllowedException("At least one teamlead must remain in the system");
