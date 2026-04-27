@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import ru.rt.rostelecom_tms.dto.auth.LoginRequest;
+import ru.rt.rostelecom_tms.dto.users.RegistrationRequestDto;
 import ru.rt.rostelecom_tms.dto.auth.TokenResponse;
 import ru.rt.rostelecom_tms.dto.users.UserResponseDto;
 import ru.rt.rostelecom_tms.security.jwt.JwtProperties;
@@ -47,6 +48,12 @@ public class AuthController {
         String jwt = jwtService.generateToken(req.email(), roles, props.accessTtlSeconds());
 
         return ResponseEntity.ok(new TokenResponse(jwt));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@RequestBody @Valid RegistrationRequestDto req) {
+        userService.createRegistrationRequest(req);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/me")
