@@ -4,7 +4,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,11 +29,16 @@ import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseUpdateDto;
 import ru.rt.rostelecom_tms.dto.common.PageResponseDto;
 import ru.rt.rostelecom_tms.security.CurrentUserResolver;
+import ru.rt.rostelecom_tms.service.cases.CaseExportFormat;
+import ru.rt.rostelecom_tms.service.cases.CaseExportService;
+import ru.rt.rostelecom_tms.service.cases.CaseExportResult;
+import ru.rt.rostelecom_tms.service.cases.CasePdfExportService;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
 import ru.rt.rostelecom_tms.util.PaginationUtils;
 import ru.rt.rostelecom_tms.util.mappers.CaseMapper;
 
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/cases")
@@ -37,6 +46,8 @@ import java.time.Instant;
 public class CaseController {
 
     private final CaseService caseService;
+    private final CaseExportService caseExportService;
+    private final CasePdfExportService casePdfExportService;
     private final CurrentUserResolver currentUserResolver;
 
     @SecurityRequirement(name = "bearerAuth")
@@ -69,6 +80,57 @@ public class CaseController {
                 ).stream()
                 .map(CaseMapper::toSimpleDto)
                 .toList(), page, size);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> export(
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam(required = false) Integer groupId,
+            @RequestParam(required = false) Integer planId,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) Instant createdFrom,
+            @RequestParam(required = false) Instant createdTo
+    ) {
+        User caller = currentUserResolver.resolveOrThrow();
+        CaseExportResult export = caseExportService.export(
+                CaseExportFormat.from(format),
+                groupId,
+                planId,
+                title,
+                tag,
+                createdFrom,
+                createdTo,
+                caller
+        );
+
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(export.filename(), StandardCharsets.UTF_8)
+                .build();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(export.mediaType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .body(export.content());
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{id}/export/pdf")
+    public ResponseEntity<byte[]> exportPdf(@PathVariable int id) {
+        User caller = currentUserResolver.resolveOrThrow();
+        CaseExportResult export = casePdfExportService.export(id, caller);
+
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(export.filename(), StandardCharsets.UTF_8)
+                .build();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(export.mediaType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .body(export.content());
     }
 
     @SecurityRequirement(name = "bearerAuth")
