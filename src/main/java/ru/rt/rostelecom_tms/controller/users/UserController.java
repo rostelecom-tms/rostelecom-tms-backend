@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.rt.rostelecom_tms.domain.users.User;
+import ru.rt.rostelecom_tms.dto.users.RegistrationResponseDto;
 import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.dto.users.UserCreateDto;
 import ru.rt.rostelecom_tms.dto.users.UserResponseDto;
@@ -71,5 +72,26 @@ public class UserController {
     public void deleteUser(@PathVariable int id) {
         User caller = currentUserResolver.resolveOrThrow();
         userService.delete(id, caller);
+    }
+
+    @GetMapping("/registration-requests")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEAMLEAD')")
+    public List<RegistrationResponseDto> listRegistrationRequests() {
+        return userService.findAllRegistrationRequests();
+    }
+
+    @PostMapping("/registration-requests/{id}/approve")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEAMLEAD')")
+    public void approve(@PathVariable int id) {
+        userService.approveRegistration(id);
+    }
+
+    @PostMapping("/registration-requests/{id}/reject")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEAMLEAD')")
+    public void reject(@PathVariable int id) {
+        userService.rejectRegistration(id);
     }
 }
