@@ -129,6 +129,11 @@
 			<artifactId>pgvector</artifactId>
 			<version>0.1.6</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.31</version>
+		</dependency>
 	</dependencies>
 
 	<build>
