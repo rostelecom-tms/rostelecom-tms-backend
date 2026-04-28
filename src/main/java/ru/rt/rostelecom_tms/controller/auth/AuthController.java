@@ -50,6 +50,11 @@ public class AuthController {
         return ResponseEntity.ok(new TokenResponse(jwt));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/register")
     public ResponseEntity<Void> register(@RequestBody @Valid RegistrationRequestDto req) {
         userService.createRegistrationRequest(req);
