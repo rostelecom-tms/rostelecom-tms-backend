@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.projects.Project;
-import ru.rt.rostelecom_tms.domain.projects.ProjectMember;
 import ru.rt.rostelecom_tms.domain.users.RegistrationRequest;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.domain.users.UserRole;
@@ -18,7 +17,6 @@ import ru.rt.rostelecom_tms.domain.users.exceptions.UserNotFoundException;
 import ru.rt.rostelecom_tms.domain.users.exceptions.UserRoleNotAllowedException;
 import ru.rt.rostelecom_tms.dto.users.RegistrationRequestDto;
 import ru.rt.rostelecom_tms.dto.users.RegistrationResponseDto;
-import ru.rt.rostelecom_tms.repository.projects.ProjectMemberRepository;
 import ru.rt.rostelecom_tms.repository.projects.ProjectRepository;
 import ru.rt.rostelecom_tms.repository.users.RegistrationRequestRepository;
 import ru.rt.rostelecom_tms.repository.users.UserRepository;
@@ -44,8 +42,6 @@ public class UserService {
     private final RegistrationRequestRepository registrationRequestRepository;
 
     private final ProjectRepository projectRepository;
-
-    private final ProjectMemberRepository projectMemberRepository;
 
     public record RegisterUserCommand(String email, String username, String password, String roleSlug, boolean canCreatePlans) {
     }
@@ -206,7 +202,6 @@ public class UserService {
         request.setEmail(dto.email());
         request.setUsername(dto.username());
         request.setPasswordHash(passwordEncoder.encode(dto.password()));
-        request.setProjectId(dto.projectId());
 
         registrationRequestRepository.save(request);
     }
@@ -214,21 +209,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<RegistrationResponseDto> findAllRegistrationRequests() {
         return registrationRequestRepository.findAll().stream()
-                .map(request -> {
-                    String projectName = "Не указан";
-                    if (request.getProjectId() != null) {
-                        projectName = projectRepository.findById(request.getProjectId())
-                                .map(Project::getName)
-                                .orElse("ID: " + request.getProjectId());
-                    }
-                    return new RegistrationResponseDto(
-                            request.getId(),
-                            request.getEmail(),
-                            request.getUsername(),
-                            request.getProjectId() != null ? request.getProjectId() : null,
-                            projectName
-                    );
-                })
+                .map(req -> new RegistrationResponseDto(req.getId(), req.getEmail(), req.getUsername()))
                 .toList();
     }
 
@@ -244,20 +225,7 @@ public class UserService {
         newUser.setCreatedAt(Instant.now());
         newUser.setRole(userRoleService.findOneBySlug(RoleSlugs.USER));
 
-        User savedUser = userRepository.save(newUser);
-
-        if (request.getProjectId() != null) {
-            Project project = projectRepository.findById(request.getProjectId())
-                    .orElseThrow(() -> new EntityNotFoundException("Проект не найден"));
-
-            ProjectMember member = new ProjectMember();
-            member.setProject(project);
-            member.setUser(savedUser);
-            member.setAddedAt(Instant.now());
-
-            projectMemberRepository.save(member);
-        }
-
+        userRepository.save(newUser);
         registrationRequestRepository.delete(request);
     }
 

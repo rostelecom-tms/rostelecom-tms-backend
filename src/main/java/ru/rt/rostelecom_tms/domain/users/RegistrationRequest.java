@@ -28,8 +28,6 @@ public class RegistrationRequest {
     @Column(name = "password_hash", nullable = false, length = Integer.MAX_VALUE)
     private String passwordHash;
 
-    private Integer projectId;
-
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
