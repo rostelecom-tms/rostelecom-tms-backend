@@ -4,9 +4,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.domain.projects.Project;
 import ru.rt.rostelecom_tms.domain.users.RegistrationRequest;
@@ -198,6 +200,20 @@ public class UserService {
 
     @Transactional
     public void createRegistrationRequest(RegistrationRequestDto dto) {
+        if (userRepository.existsByUsername(dto.username())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Логин уже занят существующим пользователем");
+        }
+        if (registrationRequestRepository.existsByUsername(dto.username())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Заявка с таким логином уже находится на рассмотрении");
+        }
+
+        if (userRepository.existsByEmail(dto.email())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Пользователь с такой почтой уже зарегистрирован");
+        }
+        if (registrationRequestRepository.existsByEmail(dto.email())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Заявка с такой почтой уже подана");
+        }
+
         RegistrationRequest request = new RegistrationRequest();
         request.setEmail(dto.email());
         request.setUsername(dto.username());
