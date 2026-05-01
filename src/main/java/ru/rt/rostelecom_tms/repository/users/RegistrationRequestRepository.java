@@ -6,4 +6,7 @@ import ru.rt.rostelecom_tms.domain.users.RegistrationRequest;
 
 @Repository
 public interface RegistrationRequestRepository extends JpaRepository<RegistrationRequest, Integer> {
+    boolean existsByEmail(String email);
+
+    boolean existsByUsername(String username);
 }
