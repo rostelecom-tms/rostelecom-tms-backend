@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import ru.rt.rostelecom_tms.domain.users.User;
 import ru.rt.rostelecom_tms.config.cache.CacheNames;
 import ru.rt.rostelecom_tms.dto.cases.CaseCreateDto;
+import ru.rt.rostelecom_tms.dto.cases.CaseImportResultDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseSimpleResponseDto;
 import ru.rt.rostelecom_tms.dto.cases.CaseUpdateDto;
@@ -32,6 +34,8 @@ import ru.rt.rostelecom_tms.security.CurrentUserResolver;
 import ru.rt.rostelecom_tms.service.cases.CaseExportFormat;
 import ru.rt.rostelecom_tms.service.cases.CaseExportService;
 import ru.rt.rostelecom_tms.service.cases.CaseExportResult;
+import ru.rt.rostelecom_tms.service.cases.CaseImportFormat;
+import ru.rt.rostelecom_tms.service.cases.CaseImportService;
 import ru.rt.rostelecom_tms.service.cases.CasePdfExportService;
 import ru.rt.rostelecom_tms.service.cases.CaseService;
 import ru.rt.rostelecom_tms.util.PaginationUtils;
@@ -48,6 +52,7 @@ public class CaseController {
     private final CaseService caseService;
     private final CaseExportService caseExportService;
     private final CasePdfExportService casePdfExportService;
+    private final CaseImportService caseImportService;
     private final CurrentUserResolver currentUserResolver;
 
     @SecurityRequirement(name = "bearerAuth")
@@ -131,6 +136,18 @@ public class CaseController {
                 .contentType(MediaType.parseMediaType(export.mediaType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .body(export.content());
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public CaseImportResultDto importCases(
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam MultipartFile file,
+            @RequestParam(required = false) Integer groupId
+    ) {
+        User caller = currentUserResolver.resolveOrThrow();
+        return caseImportService.importFile(CaseImportFormat.from(format), file, groupId, caller);
     }
 
     @SecurityRequirement(name = "bearerAuth")
